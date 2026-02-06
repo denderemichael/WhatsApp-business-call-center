@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { Conversation, ConversationStatus, Branch, Agent, Task, TaskStatus, TaskPriority, Report, ReportStatus, Notification, AnalyticsData, AdminDashboardStats } from '@/types';
-import { mockConversations, mockBranches, mockAgents, mockTasks, mockReports, mockNotifications, mockAnalyticsData, mockAdminDashboardStats } from '@/data/mockData';
+import { mockConversations, mockBranches, mockAgents, mockTasks, mockReports, mockNotifications, mockAnalyticsData, mockAdminDashboardStats, mockUsers } from '@/data/mockData';
 import mockApi from '@/services/mockApiService';
 
 interface ChatContextType {
@@ -143,20 +143,21 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       );
     }
     
-    // Create notification for new agent
+    // Create notification for new agent - chat transferred
+    const conversation = conversations.find(c => c.id === conversationId);
     const notification: Notification = {
       id: `notif-${Date.now()}`,
       userId: newAgentId,
-      type: 'task_assigned',
+      type: 'chat_transferred',
       title: 'Chat Transferred',
-      message: 'A conversation has been transferred to you',
+      message: `A conversation with ${conversation?.customerName || 'a customer'} has been transferred to you`,
       isRead: false,
       createdAt: new Date(),
       link: `/dashboard?conversation=${conversationId}`,
-      metadata: { conversationId },
+      metadata: { conversationId, type: 'transfer' },
     };
     setNotifications(prev => [...prev, notification]);
-  }, [selectedConversation]);
+  }, [selectedConversation, conversations]);
 
   const sendMessage = useCallback((conversationId: string, content: string, taskId?: string) => {
     const newMessage = {
@@ -246,17 +247,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     };
     setTasks(prev => [...prev, newTask]);
     
+    // Get the assigned agent's name for the notification
+    const assignerName = mockUsers.find(u => u.id === taskData.assignedBy)?.name || 'A manager';
+    
     // Create notification for assigned agent
     const notification: Notification = {
       id: `notif-${Date.now()}`,
       userId: taskData.assignedTo,
       type: 'task_assigned',
       title: 'New Task Assigned',
-      message: `${taskData.assignedBy === 'current-user' ? 'You have' : 'A manager has'} assigned you a task: ${taskData.title}`,
+      message: `${assignerName} assigned you a task: "${taskData.title}"`,
       isRead: false,
       createdAt: new Date(),
-      link: `/dashboard?task=${newTask.id}`,
-      metadata: { taskId: newTask.id },
+      link: `/tasks?task=${newTask.id}`,
+      metadata: { taskId: newTask.id, conversationId: taskData.conversationId },
     };
     setNotifications(prev => [...prev, notification]);
   }, []);

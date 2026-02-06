@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useChat } from '@/context/ChatContext';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { formatDistanceToNow } from 'date-fns';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const statusColors = {
   online: 'bg-green-500',
@@ -38,10 +39,11 @@ const statusLabels = {
 };
 
 const notificationIcons: Record<string, string> = {
-  task_assigned: 'person',
+  task_assigned: 'assignment',
+  chat_transferred: 'swap_horiz',
   report_submitted: 'notifications',
   report_reviewed: 'notifications',
-  conversation_escalated: 'notifications',
+  conversation_escalated: 'priority_high',
   agent_status_changed: 'person',
 };
 
@@ -59,6 +61,23 @@ export function DashboardHeader() {
   const [isDark] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [editName, setEditName] = useState(user?.name || '');
+  const [searchParams] = useSearchParams();
+
+  const handleNotificationClick = (notification: typeof notifications[0]) => {
+    // Mark as read
+    markNotificationAsRead(notification.id);
+    
+    // Navigate based on notification type
+    if (notification.metadata?.taskId) {
+      navigate(`/tasks?task=${notification.metadata.taskId}`);
+    } else if (notification.metadata?.conversationId) {
+      navigate(`/dashboard?conversation=${notification.metadata.conversationId}`);
+    } else if (notification.metadata?.reportId) {
+      navigate(`/reports?report=${notification.metadata.reportId}`);
+    } else if (notification.link) {
+      navigate(notification.link);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -134,7 +153,7 @@ export function DashboardHeader() {
           </DropdownMenu>
         )}
 
-        {/* Notifications */}
+        {/* Notifications - Scrollable Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
@@ -149,8 +168,8 @@ export function DashboardHeader() {
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel className="flex items-center justify-between">
+          <DropdownMenuContent align="end" className="w-80 max-h-[400px] p-0">
+            <DropdownMenuLabel className="flex items-center justify-between sticky top-0 bg-background z-10">
               Notifications
               {unreadNotificationsCount > 0 && (
                 <Button
@@ -164,38 +183,43 @@ export function DashboardHeader() {
               )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {notifications.length === 0 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                No notifications
-              </div>
-            ) : (
-              notifications.slice(0, 10).map((notification) => (
-                <DropdownMenuItem
-                  key={notification.id}
-                  className={cn(
-                    'flex flex-col items-start gap-1 p-3',
-                    !notification.isRead && 'bg-muted/50'
-                  )}
-                  onClick={() => markNotificationAsRead(notification.id)}
-                >
-                  <div className="flex items-center gap-2 w-full">
-                    {getNotificationIcon(notification.type)}
-                    <span className="font-medium text-sm">{notification.title}</span>
-                    {!notification.isRead && (
-                      <span className="w-2 h-2 rounded-full bg-primary ml-auto" />
+            <ScrollArea className="h-[300px]">
+              {notifications.length === 0 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  No notifications
+                </div>
+              ) : (
+                notifications.map((notification) => (
+                  <DropdownMenuItem
+                    key={notification.id}
+                    className={cn(
+                      'flex flex-col items-start gap-1 p-3 cursor-pointer',
+                      !notification.isRead && 'bg-muted/50'
                     )}
-                  </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2">
-                    {notification.message}
-                  </p>
-                  <span className="text-[10px] text-muted-foreground">
-                    {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-                  </span>
-                </DropdownMenuItem>
-              ))
-            )}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
+                    <div className="flex items-center gap-2 w-full">
+                      {getNotificationIcon(notification.type)}
+                      <span className="font-medium text-sm">{notification.title}</span>
+                      {!notification.isRead && (
+                        <span className="w-2 h-2 rounded-full bg-primary ml-auto" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {notification.message}
+                    </p>
+                    <span className="text-[10px] text-muted-foreground">
+                      {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                    </span>
+                  </DropdownMenuItem>
+                ))
+              )}
+            </ScrollArea>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="justify-center text-center text-xs text-muted-foreground">
+            <DropdownMenuItem 
+              className="justify-center text-center text-xs text-muted-foreground cursor-pointer"
+              onClick={() => navigate('/notifications')}
+            >
               View all notifications
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -310,7 +310,7 @@ export interface ReportExtended extends Report {
 // Notification Types
 // ============================================================================
 
-export type NotificationType = 'task_assigned' | 'report_submitted' | 'report_reviewed' | 'conversation_escalated' | 'agent_status_changed';
+export type NotificationType = 'task_assigned' | 'chat_transferred' | 'report_submitted' | 'report_reviewed' | 'conversation_escalated' | 'agent_status_changed';
 
 export interface Notification {
   id: string;
