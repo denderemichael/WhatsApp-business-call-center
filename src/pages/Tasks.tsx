@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { ChatProvider } from '@/context/ChatContext';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { TaskPanel } from '@/components/dashboard/TaskPanel';
@@ -29,9 +28,5 @@ export default function TasksPage() {
     return <Navigate to="/login" replace />;
   }
 
-  return (
-    <ChatProvider>
-      <TasksContent />
-    </ChatProvider>
-  );
+  return <TasksContent />;
 }

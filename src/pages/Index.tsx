@@ -130,10 +130,6 @@ export default function Index() {
         <p className="text-muted-foreground mb-8">
           Start managing all your branches from a single WhatsApp number today.
         </p>
-        <Button size="lg" className="h-12 px-8 text-base" onClick={() => navigate('/login')}>
-          Sign In Now
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
       </div>
 
       {/* Footer */}

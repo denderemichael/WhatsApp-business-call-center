@@ -23,7 +23,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   FileText,
-  Download,
 } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 
@@ -121,9 +120,6 @@ export function AnalyticsDashboard() {
               <SelectItem value="90days">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon">
-            <Download className="h-4 w-4" />
-          </Button>
         </div>
       </div>
 

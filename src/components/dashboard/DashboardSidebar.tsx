@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useChat } from '@/context/ChatContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -245,7 +245,7 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
                   </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuContent align="end" className="w-72 max-h-80 overflow-y-auto">
                 <DropdownMenuLabel className="flex items-center justify-between">
                   <span>All Agents</span>
                   <span className="text-xs text-muted-foreground">
@@ -261,9 +261,8 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
                   return (
                     <DropdownMenuItem key={agent.id} className="flex flex-col items-start p-3">
                       <div className="flex items-center gap-2 w-full">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={agent.avatar} />
-                          <AvatarFallback className="text-xs">
+                        <Avatar className="h-8 w-8 bg-primary/10">
+                          <AvatarFallback className="text-xs bg-primary/20 text-primary">
                             {agent.name.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
@@ -332,6 +331,7 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
             <Button
               variant="ghost"
               className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              onClick={() => navigate('/settings')}
             >
               <span className="material-icons mr-3 text-xl">settings</span>
               Settings
@@ -343,9 +343,8 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
       {/* User Profile */}
       <div className="p-3 border-t border-sidebar-border">
         <div className="flex items-center gap-3 p-2 rounded-lg bg-sidebar-accent/50">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.avatar} />
-            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm">
+          <Avatar className="h-9 w-9 bg-sidebar-primary/10">
+            <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary text-sm">
               {user?.name?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { Conversation, ConversationStatus, Branch, Agent, Task, TaskStatus, TaskPriority, Report, ReportStatus, Notification, AnalyticsData, AdminDashboardStats } from '@/types';
 import { mockConversations, mockBranches, mockAgents, mockTasks, mockReports, mockNotifications, mockAnalyticsData, mockAdminDashboardStats } from '@/data/mockData';
+import mockApi from '@/services/mockApiService';
 
 interface ChatContextType {
   // Conversations
@@ -50,7 +51,7 @@ interface ChatContextType {
   adminDashboardStats: AdminDashboardStats | null;
   
   // Online/Offline Status
-  updateAgentStatus: (agentId: string, status: 'online' | 'busy' | 'offline') => void;
+  updateAgentStatus: (agentId: string, status: 'online' | 'busy' | 'offline') => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -223,12 +224,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     return agents.filter(a => a.branchId === branchId);
   }, [agents]);
 
-  const updateAgentStatus = useCallback((agentId: string, status: 'online' | 'busy' | 'offline') => {
+  const updateAgentStatus = useCallback(async (agentId: string, status: 'online' | 'busy' | 'offline') => {
+    // Update local state immediately for responsive UI
     setAgents(prev =>
       prev.map(agent =>
         agent.id === agentId ? { ...agent, status } : agent
       )
     );
+    
+    // Call API to update status and notify managers
+    await mockApi.updateAgentStatus(agentId, status);
   }, []);
 
   // Task methods

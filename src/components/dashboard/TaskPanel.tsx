@@ -29,6 +29,8 @@ import {
   AlertTriangle,
   CheckCircle,
   MessageSquare,
+  Play,
+  Circle,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -69,6 +71,11 @@ export function TaskPanel({ onSelectTask }: TaskPanelProps) {
   } = useChat();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
+
+  // Handle status change
+  const handleStatusChange = (taskId: string, status: TaskStatus) => {
+    updateTaskStatus(taskId, status);
+  };
 
   // Filter tasks based on user role
   const filteredTasks = tasks.filter(task => {
@@ -120,7 +127,7 @@ export function TaskPanel({ onSelectTask }: TaskPanelProps) {
               onClick={() => setFilter(f)}
             >
               {f === 'all' ? 'All' : f.replace('_', ' ')}
-              {f !== 'all' && (
+              {f !== 'all' && tasks.filter(t => t.status === f).length > 0 && (
                 <Badge variant="secondary" className="ml-1 text-[10px]">
                   {tasks.filter(t => t.status === f).length}
                 </Badge>
@@ -184,6 +191,46 @@ export function TaskPanel({ onSelectTask }: TaskPanelProps) {
                     </Badge>
                   </div>
                 )}
+
+                {/* Status Action Buttons */}
+                <div className="mt-3 pt-2 border-t border-border flex gap-1">
+                  <Button
+                    size="sm"
+                    variant={task.status === 'pending' ? 'default' : 'outline'}
+                    className="h-7 text-xs flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(task.id, 'pending');
+                    }}
+                  >
+                    <Circle className="h-3 w-3 mr-1" />
+                    Pending
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={task.status === 'in_progress' ? 'default' : 'outline'}
+                    className="h-7 text-xs flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(task.id, 'in_progress');
+                    }}
+                  >
+                    <Play className="h-3 w-3 mr-1" />
+                    In Progress
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={task.status === 'completed' ? 'default' : 'outline'}
+                    className="h-7 text-xs flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(task.id, 'completed');
+                    }}
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Done
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))
@@ -214,15 +261,19 @@ function CreateTaskDialog({ open, onOpenChange, onCreate }: CreateTaskDialogProp
   const [priority, setPriority] = useState<TaskPriority>('normal');
   const [assignedTo, setAssignedTo] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [selectedBranchId, setSelectedBranchId] = useState(user?.branchId || '');
 
-  const branchAgents = agents.filter(a => a.branchId === user?.branchId);
+  // Get available agents - admins see all, managers see their branch's agents
+  const availableAgents = selectedBranchId 
+    ? agents.filter(a => a.branchId === selectedBranchId)
+    : agents;
 
   const handleCreate = () => {
-    if (!title || !assignedTo || !user?.branchId) return;
+    if (!title || !assignedTo) return;
 
     onCreate({
-      branchId: user.branchId,
-      assignedBy: 'manager-1', // In real app, use actual user ID
+      branchId: selectedBranchId || user?.branchId || 'branch-1',
+      assignedBy: user?.id || 'manager-1',
       assignedTo,
       title,
       description,
@@ -239,6 +290,7 @@ function CreateTaskDialog({ open, onOpenChange, onCreate }: CreateTaskDialogProp
     setPriority('normal');
     setAssignedTo('');
     setDueDate('');
+    setSelectedBranchId(user?.branchId || '');
     onOpenChange(false);
   };
 
@@ -270,7 +322,7 @@ function CreateTaskDialog({ open, onOpenChange, onCreate }: CreateTaskDialogProp
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Priority</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
@@ -287,23 +339,45 @@ function CreateTaskDialog({ open, onOpenChange, onCreate }: CreateTaskDialogProp
             </div>
 
             <div className="space-y-2">
+              <Label>Branch</Label>
+              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label>Assign To</Label>
-              <Select value={assignedTo} onValueChange={setAssignedTo}>
+              <Select value={assignedTo} onValueChange={setAssignedTo} disabled={!selectedBranchId && agents.length === 0}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select agent" />
                 </SelectTrigger>
                 <SelectContent>
-                  {branchAgents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${
-                          agent.status === 'online' ? 'bg-green-500' : 
-                          agent.status === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
-                        }`} />
-                        {agent.name}
-                      </div>
+                  {availableAgents.length === 0 ? (
+                    <SelectItem value="no-agents" disabled>
+                      No agents available
                     </SelectItem>
-                  ))}
+                  ) : (
+                    availableAgents.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${
+                            agent.status === 'online' ? 'bg-green-500' : 
+                            agent.status === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
+                          }`} />
+                          {agent.name}
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

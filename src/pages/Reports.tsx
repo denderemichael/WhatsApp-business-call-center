@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { ChatProvider } from '@/context/ChatContext';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { ReportPanel } from '@/components/dashboard/ReportPanel';
@@ -34,9 +33,5 @@ export default function ReportsPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return (
-    <ChatProvider>
-      <ReportsContent />
-    </ChatProvider>
-  );
+  return <ReportsContent />;
 }

@@ -1,5 +1,4 @@
 import { useAuth } from '@/context/AuthContext';
-import { ChatProvider } from '@/context/ChatContext';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { ConversationList } from '@/components/dashboard/ConversationList';
@@ -37,9 +36,5 @@ export default function Dashboard() {
     return <Navigate to="/login" replace />;
   }
 
-  return (
-    <ChatProvider>
-      <DashboardContent />
-    </ChatProvider>
-  );
+  return <DashboardContent />;
 }

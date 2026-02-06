@@ -237,6 +237,14 @@ function CreateReportDialog({ open, onOpenChange, onCreate }: CreateReportDialog
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [reportType, setReportType] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
+  
+  // Editable metrics
+  const [totalConversations, setTotalConversations] = useState(0);
+  const [resolvedConversations, setResolvedConversations] = useState(0);
+  const [escalatedConversations, setEscalatedConversations] = useState(0);
+  const [averageResponseTime, setAverageResponseTime] = useState(0);
+  const [averageResolutionTime, setAverageResolutionTime] = useState(0);
+  const [customerSatisfaction, setCustomerSatisfaction] = useState(0);
 
   const handleCreate = () => {
     if (!title || !content || !user?.branchId) return;
@@ -250,12 +258,12 @@ function CreateReportDialog({ open, onOpenChange, onCreate }: CreateReportDialog
       status: 'submitted',
       submittedAt: new Date(),
       metrics: {
-        totalConversations: 15,
-        resolvedConversations: 12,
-        escalatedConversations: 1,
-        averageResponseTime: 2.5,
-        averageResolutionTime: 15,
-        customerSatisfaction: 4.2,
+        totalConversations,
+        resolvedConversations,
+        escalatedConversations,
+        averageResponseTime,
+        averageResolutionTime,
+        customerSatisfaction,
         agentPerformance: [],
       },
     });
@@ -265,9 +273,16 @@ function CreateReportDialog({ open, onOpenChange, onCreate }: CreateReportDialog
       description: `Your ${reportType} report has been submitted to the admin for review.`,
     });
 
+    // Reset form
     setTitle('');
     setContent('');
     setReportType('daily');
+    setTotalConversations(0);
+    setResolvedConversations(0);
+    setEscalatedConversations(0);
+    setAverageResponseTime(0);
+    setAverageResolutionTime(0);
+    setCustomerSatisfaction(0);
     onOpenChange(false);
   };
 
@@ -316,16 +331,70 @@ function CreateReportDialog({ open, onOpenChange, onCreate }: CreateReportDialog
 
           <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
             <div className="text-center">
-              <p className="text-2xl font-bold">15</p>
-              <p className="text-xs text-muted-foreground">Total Chats</p>
+              <Input
+                type="number"
+                value={totalConversations}
+                onChange={(e) => setTotalConversations(Number(e.target.value))}
+                className="text-center text-2xl font-bold h-10"
+                min={0}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Total Chats</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">12</p>
-              <p className="text-xs text-muted-foreground">Resolved</p>
+              <Input
+                type="number"
+                value={resolvedConversations}
+                onChange={(e) => setResolvedConversations(Number(e.target.value))}
+                className="text-center text-2xl font-bold h-10 text-green-600"
+                min={0}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Resolved</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">2.5m</p>
-              <p className="text-xs text-muted-foreground">Avg Response</p>
+              <Input
+                type="number"
+                value={averageResponseTime}
+                onChange={(e) => setAverageResponseTime(Number(e.target.value))}
+                className="text-center text-2xl font-bold h-10 text-blue-600"
+                min={0}
+                step={0.1}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Avg Response (min)</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
+            <div className="text-center">
+              <Input
+                type="number"
+                value={escalatedConversations}
+                onChange={(e) => setEscalatedConversations(Number(e.target.value))}
+                className="text-center text-lg font-bold h-8"
+                min={0}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Escalated</p>
+            </div>
+            <div className="text-center">
+              <Input
+                type="number"
+                value={averageResolutionTime}
+                onChange={(e) => setAverageResolutionTime(Number(e.target.value))}
+                className="text-center text-lg font-bold h-8"
+                min={0}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Avg Resolution (min)</p>
+            </div>
+            <div className="text-center">
+              <Input
+                type="number"
+                value={customerSatisfaction}
+                onChange={(e) => setCustomerSatisfaction(Number(e.target.value))}
+                className="text-center text-lg font-bold h-8"
+                min={0}
+                max={5}
+                step={0.1}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Customer Satisfaction</p>
             </div>
           </div>
         </div>

@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useChat } from '@/context/ChatContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
@@ -46,6 +47,7 @@ const notificationIcons: Record<string, string> = {
 
 export function DashboardHeader() {
   const { user, logout, updateUser } = useAuth();
+  const navigate = useNavigate();
   const { 
     notifications, 
     unreadNotificationsCount, 
@@ -62,9 +64,9 @@ export function DashboardHeader() {
     logout();
   };
 
-  const handleStatusChange = (status: 'online' | 'busy' | 'offline') => {
+  const handleStatusChange = async (status: 'online' | 'busy' | 'offline') => {
     if (user) {
-      updateAgentStatus(user.id, status);
+      await updateAgentStatus(user.id, status);
     }
   };
 
@@ -203,9 +205,8 @@ export function DashboardHeader() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.avatar} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+              <Avatar className="h-8 w-8 bg-primary/10">
+                <AvatarFallback className="bg-primary/20 text-primary text-sm">
                   {user?.name?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
@@ -214,9 +215,8 @@ export function DashboardHeader() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatar} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                <Avatar className="h-8 w-8 bg-primary/10">
+                  <AvatarFallback className="bg-primary/20 text-primary text-sm">
                     {user?.name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
@@ -231,7 +231,7 @@ export function DashboardHeader() {
               <span className="material-icons mr-2 text-sm">person</span>
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/settings')}>
               <span className="material-icons mr-2 text-sm">settings</span>
               Settings
             </DropdownMenuItem>
@@ -252,9 +252,8 @@ export function DashboardHeader() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={user?.avatar} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+              <Avatar className="h-16 w-16 bg-primary/10">
+                <AvatarFallback className="bg-primary/20 text-primary text-xl">
                   {user?.name?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>

@@ -13,12 +13,12 @@ import { User, UserRole, Conversation, Branch, Agent, Task, Report, Notification
 // Types
 // ============================================================================
 
-interface UseMockApiOptions {
+export interface UseMockApiOptions {
   autoLogin?: boolean;
   defaultUserId?: string;
 }
 
-interface UseMockApiReturn {
+export interface UseMockApiReturn {
   // User state
   currentUser: User | null;
   isAuthenticated: boolean;

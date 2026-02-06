@@ -102,8 +102,9 @@ class MockApiService {
     this.notifications = [...mockNotifications];
     this.escalations = [];
     this.auditLogs = [];
-    this.slaTracking = this.initializeSLATracking();
+    // Initialize configs before tracking (tracking depends on configs)
     this.slaConfigs = this.initializeSLAConfigs();
+    this.slaTracking = this.initializeSLATracking();
     
     this.syncSubscribers = new Set();
     this.baseLatencyMs = 100;
@@ -449,12 +450,39 @@ class MockApiService {
       return { success: false, error: { code: 'AGENT_NOT_FOUND', message: 'Agent not found' } };
     }
     
+    const oldStatus = this.agents[agentIndex].status;
     this.agents[agentIndex] = { ...this.agents[agentIndex], ...updates };
+    
+    // Update user status as well
+    const userIndex = this.users.findIndex(u => u.id === agentId);
+    if (userIndex !== -1) {
+      this.users[userIndex] = { ...this.users[userIndex], ...updates };
+    }
+    
+    // If status changed, notify the branch manager
+    if (updates.status && updates.status !== oldStatus) {
+      const agent = this.agents[agentIndex];
+      const managerId = this.getBranchManagerId(agent.branchId);
+      
+      this.createNotificationInternal({
+        userId: managerId,
+        type: 'agent_status_changed',
+        title: 'Agent Status Changed',
+        message: `${agent.name || 'An agent'} is now ${updates.status}`,
+        isRead: false,
+        priority: 'normal',
+        metadata: { agentId, agentName: agent.name, oldStatus, newStatus: updates.status },
+      });
+    }
     
     this.logAudit('agent_status_changed', undefined, { agentId, updates });
     this.notifySyncChange();
     
     return { success: true, data: this.agents[agentIndex] };
+  }
+
+  async updateAgentStatus(agentId: string, status: 'online' | 'busy' | 'offline'): Promise<ApiResponse<Agent>> {
+    return this.updateAgent(agentId, { status });
   }
 
   async reassignAgent(agentId: string, newBranchId: string): Promise<ApiResponse<Agent>> {

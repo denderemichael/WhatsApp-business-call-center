@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { ChatProvider } from '@/context/ChatContext';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { AnalyticsDashboard } from '@/components/dashboard/AnalyticsDashboard';
@@ -32,9 +30,5 @@ export default function AnalyticsPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return (
-    <ChatProvider>
-      <AnalyticsContent />
-    </ChatProvider>
-  );
+  return <AnalyticsContent />;
 }
