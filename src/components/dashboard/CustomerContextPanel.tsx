@@ -14,30 +14,35 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import {
-  Phone,
-  Building2,
-  User,
-  Tag,
-  FileText,
-  ArrowRightLeft,
-  AlertTriangle,
-} from 'lucide-react';
 import { useState } from 'react';
+
+// Zimbabwe locations for branches
+const zimbabweLocations: Record<string, string> = {
+  'Harare CBD': 'location_on',
+  'Chitungwiza': 'location_on',
+  'Mutare': 'location_on',
+  'Bulawayo': 'location_on',
+  'Gweru': 'location_on',
+  'Masvingo': 'location_on',
+  'Kwekwe': 'location_on',
+  'Zvishavane': 'location_on',
+};
 
 const tagColors: Record<ConversationTag, string> = {
   Loan: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   Repayment: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   Complaint: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
   General: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+  Inquiry: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+  Support: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
 };
 
-export function CustomerContextPanel() {
+export function CustomerContextPanel({ onClose }: { onClose?: () => void }) {
   const { selectedConversation, branches, agents, updateNotes, transferConversation, escalateConversation } = useChat();
   const { user } = useAuth();
   const [notes, setNotes] = useState(selectedConversation?.notes || '');
   const [selectedAgentId, setSelectedAgentId] = useState('');
+  const [notesSaved, setNotesSaved] = useState(false);
 
   if (!selectedConversation) {
     return (
@@ -55,6 +60,8 @@ export function CustomerContextPanel() {
 
   const handleSaveNotes = () => {
     updateNotes(selectedConversation.id, notes);
+    setNotesSaved(true);
+    setTimeout(() => setNotesSaved(false), 2000);
   };
 
   const handleTransfer = () => {
@@ -70,8 +77,29 @@ export function CustomerContextPanel() {
 
   const canTransfer = user?.role === 'admin' || user?.role === 'branch_manager';
 
+  // Get location icon for branch
+  const getLocationIcon = (locationName: string) => {
+    // Check if location contains Harare, Chitungwiza, etc.
+    for (const [loc, icon] of Object.entries(zimbabweLocations)) {
+      if (locationName.toLowerCase().includes(loc.toLowerCase())) {
+        return icon;
+      }
+    }
+    return 'location_on'; // Default location icon
+  };
+
   return (
     <div className="w-80 bg-card border-l border-border flex flex-col h-full overflow-y-auto scrollbar-thin">
+      {/* Header with close button */}
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <h3 className="font-semibold text-foreground">Customer Details</h3>
+        {onClose && (
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
+            <span className="material-icons text-sm">close</span>
+          </Button>
+        )}
+      </div>
+      
       {/* Customer Info */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3 mb-4">
@@ -82,22 +110,27 @@ export function CustomerContextPanel() {
           </Avatar>
           <div>
             <h3 className="font-semibold text-foreground">{selectedConversation.customerName}</h3>
-            <p className="text-xs text-muted-foreground">Customer</p>
+            <p className="text-xs text-muted-foreground capitalize">{user?.role || 'Customer'}</p>
           </div>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm">
-            <Phone className="h-4 w-4 text-muted-foreground" />
+            <span className="material-icons text-muted-foreground text-sm">phone</span>
             <span className="text-foreground">{selectedConversation.customerPhone}</span>
           </div>
+          
+          {/* Location - Harare CBD, Chitungwiza, etc. */}
           <div className="flex items-center gap-2 text-sm">
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <span className="material-icons text-muted-foreground text-sm">
+              {getLocationIcon(branch?.name || '')}
+            </span>
             <span className="text-foreground">{branch?.name}</span>
           </div>
+          
           {assignedAgent && (
             <div className="flex items-center gap-2 text-sm">
-              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="material-icons text-muted-foreground text-sm">person</span>
               <span className="text-foreground">{assignedAgent.name}</span>
             </div>
           )}
@@ -107,7 +140,7 @@ export function CustomerContextPanel() {
       {/* Tags */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-3">
-          <Tag className="h-4 w-4 text-muted-foreground" />
+          <span className="material-icons text-muted-foreground text-sm">sell</span>
           <Label className="text-sm font-medium">Tags</Label>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -125,17 +158,28 @@ export function CustomerContextPanel() {
       {/* Notes */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-3">
-          <FileText className="h-4 w-4 text-muted-foreground" />
+          <span className="material-icons text-muted-foreground text-sm">note</span>
           <Label className="text-sm font-medium">Notes</Label>
         </div>
         <Textarea
           placeholder="Add notes about this customer..."
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e) => {
+            setNotes(e.target.value);
+            setNotesSaved(false);
+          }}
           className="min-h-[80px] text-sm"
         />
-        <Button size="sm" className="mt-2 w-full" onClick={handleSaveNotes}>
-          Save Notes
+        <Button 
+          size="sm" 
+          className="mt-2 w-full" 
+          onClick={handleSaveNotes}
+          variant={notesSaved ? "outline" : "default"}
+        >
+          <span className="material-icons text-sm mr-1">
+            {notesSaved ? 'check' : 'save'}
+          </span>
+          {notesSaved ? 'Saved!' : 'Save Notes'}
         </Button>
       </div>
 
@@ -145,7 +189,7 @@ export function CustomerContextPanel() {
           <Card>
             <CardHeader className="p-3 pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
-                <ArrowRightLeft className="h-4 w-4" />
+                <span className="material-icons text-sm">swap_horiz</span>
                 Transfer Chat
               </CardTitle>
             </CardHeader>
@@ -180,6 +224,7 @@ export function CustomerContextPanel() {
                 disabled={!selectedAgentId}
                 onClick={handleTransfer}
               >
+                <span className="material-icons text-sm mr-1">swap_horiz</span>
                 Transfer
               </Button>
             </CardContent>
@@ -188,7 +233,7 @@ export function CustomerContextPanel() {
           <Card className="border-destructive/50">
             <CardHeader className="p-3 pb-2">
               <CardTitle className="text-sm flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-4 w-4" />
+                <span className="material-icons text-sm">warning</span>
                 Escalate
               </CardTitle>
             </CardHeader>
@@ -203,6 +248,7 @@ export function CustomerContextPanel() {
                 onClick={handleEscalate}
                 disabled={selectedConversation.status === 'escalated'}
               >
+                <span className="material-icons text-sm mr-1">arrow_upward</span>
                 {selectedConversation.status === 'escalated' ? 'Already Escalated' : 'Escalate'}
               </Button>
             </CardContent>

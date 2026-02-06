@@ -1,123 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    /* ========================================
+       THEME COLORS - MODIFY HERE FOR CHANGES
+       ======================================== */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    /* Font/Text Colors - Dark grey for visibility on off-white */
+    --foreground: 0 0% 20%;           /* Main text color - Dark grey (#333333) */
+    --muted-foreground: 0 0% 50%;     /* Muted text color - Medium grey (#808080) */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    /* Card/Panel Background Colors - Off-white */
+    --background: 0 0% 98%;           /* Main background - Off-white (#FAFAFA) */
+    --card: 0 0% 100%;                 /* Card background - White (#FFFFFF) */
+    --card-foreground: 0 0% 20%;      /* Card text - Dark grey (#333333) */
+    --popover: 0 0% 100%;             /* Popover background - White (#FFFFFF) */
+    --popover-foreground: 0 0% 20%;   /* Popover text - Dark grey (#333333) */
 
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary Colors - Green theme */
+    --primary: 160 84% 39%;           /* Primary color - Green (#22C55E) */
+    --primary-foreground: 0 0% 100%;  /* Primary text - White (#FFFFFF) */
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary Colors - Light grey */
+    --secondary: 0 0% 90%;            /* Secondary background - Light grey (#E5E5E5) */
+    --secondary-foreground: 0 0% 20%; /* Secondary text - Dark grey (#333333) */
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    /* Accent Colors - Green */
+    --accent: 160 84% 39%;            /* Accent color - Green (#22C55E) */
+    --accent-foreground: 0 0% 100%;  /* Accent text - White (#FFFFFF) */
 
-    --accent: 160 84% 39%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
+    /* Status Colors */
+    --destructive: 0 84% 60%;        /* Error/Destructive - Red (#EF4444) */
     --destructive-foreground: 0 0% 100%;
-
-    --success: 142 76% 36%;
+    --success: 142 76% 36%;           /* Success - Green (#22C55E) */
     --success-foreground: 0 0% 100%;
-
-    --warning: 38 92% 50%;
+    --warning: 38 92% 50%;           /* Warning/Orange - Orange (#F59E0B) */
     --warning-foreground: 0 0% 100%;
-
-    --info: 199 89% 48%;
+    --info: 199 89% 48%;             /* Info - Blue (#1890FF) */
     --info-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 160 84% 39%;
+    /* Border & Input */
+    --border: 0 0% 85%;               /* Border color - Light grey (#D9D9D9) */
+    --input: 0 0% 85%;               /* Input background - Light grey (#D9D9D9) */
+    --ring: 160 84% 39%;              /* Focus ring - Green (#22C55E) */
 
-    --radius: 0.75rem;
+    --radius: 0.75rem;                /* Border radius */
 
-    /* Sidebar */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 160 84% 39%;
+    /* Sidebar Colors - Dark blue theme */
+    --sidebar-background: 222 47% 11%;  /* Sidebar - Dark blue (#1E3A5F) */
+    --sidebar-foreground: 0 0% 100%;     /* Sidebar text - White (#FFFFFF) */
+    --sidebar-primary: 160 84% 39%;     /* Sidebar primary - Green (#22C55E) */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-accent: 217 33% 17%;      /* Sidebar accent - Lighter dark blue (#2A3F5F) */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 33% 17%;     /* Sidebar border */
+    --sidebar-ring: 160 84% 39%;       /* Sidebar focus ring */
 
-    /* Chat specific */
-    --chat-incoming: 210 40% 96%;
-    --chat-incoming-foreground: 222 47% 11%;
-    --chat-outgoing: 160 84% 39%;
-    --chat-outgoing-foreground: 0 0% 100%;
+    /* Chat Colors - WhatsApp-style */
+    --chat-incoming: 100 30% 96%;      /* Incoming message - Light green (#ECFDF5) */
+    --chat-incoming-foreground: 0 0% 20%;   /* Incoming text - Dark grey (#333333) */
+    --chat-outgoing: 160 76% 35%;      /* Outgoing message - Green (#22C55E) */
+    --chat-outgoing-foreground: 0 0% 100%;  /* Outgoing text - White (#FFFFFF) */
 
-    /* Status colors */
-    --status-new: 199 89% 48%;
-    --status-in-progress: 38 92% 50%;
-    --status-escalated: 0 84% 60%;
-    --status-resolved: 142 76% 36%;
+    /* Status Badge Colors */
+    --status-new: 199 89% 48%;        /* New - Blue (#1890FF) */
+    --status-in-progress: 38 92% 50%; /* In Progress - Orange (#F59E0B) */
+    --status-escalated: 0 84% 60%;    /* Escalated - Red (#EF4444) */
+    --status-resolved: 142 76% 36%;  /* Resolved - Green (#22C55E) */
   }
 
+  /* Dark Mode (if needed in future) */
   .dark {
     --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-
+    --foreground: 0 0% 100%;
     --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
-
+    --card-foreground: 0 0% 100%;
     --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 160 84% 45%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 160 84% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 160 84% 39%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-
+    --destructive-foreground: 0 0% 100%;
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
-
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
-
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 160 84% 45%;
-
+    --ring: 160 84% 39%;
     --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 160 84% 45%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 160 84% 39%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 33% 12%;
-    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 217 33% 12%;
-    --sidebar-ring: 160 84% 45%;
-
+    --sidebar-ring: 160 84% 39%;
     --chat-incoming: 217 33% 17%;
-    --chat-incoming-foreground: 210 40% 98%;
-    --chat-outgoing: 160 84% 45%;
+    --chat-incoming-foreground: 0 0% 100%;
+    --chat-outgoing: 160 76% 35%;
     --chat-outgoing-foreground: 0 0% 100%;
   }
 }
@@ -158,6 +149,7 @@
 }
 
 @layer components {
+  /* Status Badges */
   .status-badge-new {
     @apply bg-[hsl(var(--status-new))] text-white;
   }
@@ -174,11 +166,25 @@
     @apply bg-[hsl(var(--status-resolved))] text-white;
   }
 
+  /* WhatsApp-style Chat Bubbles */
   .chat-bubble-incoming {
     @apply bg-[hsl(var(--chat-incoming))] text-[hsl(var(--chat-incoming-foreground))];
   }
 
   .chat-bubble-outgoing {
     @apply bg-[hsl(var(--chat-outgoing))] text-[hsl(var(--chat-outgoing-foreground))];
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    @apply bg-white text-foreground border border-gray-200 
+           hover:bg-[hsl(var(--primary))] hover:text-white hover:border-[hsl(var(--primary))] 
+           transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-foreground border border-gray-200 
+           hover:bg-[hsl(var(--secondary))] hover:text-[hsl(var(--secondary-foreground))] 
+           transition-colors duration-200;
   }
 }

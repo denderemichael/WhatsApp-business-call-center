@@ -1,73 +1,73 @@
-# Welcome to your Lovable project
+# WhatsApp Agent Contact Centre Dashboard
 
-## Project info
+A production-ready WhatsApp Agent Contact Centre Dashboard built with React, TypeScript, and modern best practices.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- **Multi-Branch Support**: Single WhatsApp number serving multiple branches
+- **Role-Based Access**: Admin, Branch Manager, and Agent roles with specific permissions
+- **Smart Routing**: Intelligent conversation routing to correct agents
+- **Task Management**: Branch managers can assign specific tasks to agents
+- **Customer 360**: Complete customer context and interaction history
+- **Audit Logging**: Full traceability of all actions
+- **Real-Time Updates**: Live conversation status and notifications
+- **Analytics Dashboard**: Performance metrics and reporting
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend**: React 18 + TypeScript
+- **Build Tool**: Vite 5.x
+- **UI Components**: shadcn/ui + Tailwind CSS
+- **State Management**: React Context + TanStack Query
+- **Routing**: React Router v6
+- **Icons**: Google Material Icons
+- **Date Handling**: date-fns
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
+- Node.js 18+ 
+- npm or bun
 
-**Use your preferred IDE**
+### Installation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```bash
+# Install dependencies
+npm install
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Run tests
+npm run test
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+├── components/
+│   ├── dashboard/        # Dashboard-specific components
+│   └── ui/              # Reusable UI components
+├── contexts/            # React Context providers
+├── data/                # Mock data and fixtures
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions
+├── pages/               # Page components
+└── types/               # TypeScript type definitions
+```
 
-**Use GitHub Codespaces**
+## User Roles
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Role | Permissions |
+|------|-------------|
+| **Admin** | Full system access, view all branches, analytics, reports |
+| **Branch Manager** | Manage agents, assign tasks, view branch analytics, create reports |
+| **Agent** | Handle assigned conversations, reply to messages, update status |
 
-## What technologies are used for this project?
+## License
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT License

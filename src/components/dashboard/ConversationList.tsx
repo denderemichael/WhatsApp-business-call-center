@@ -1,20 +1,36 @@
 import { useChat } from '@/context/ChatContext';
 import { useAuth } from '@/context/AuthContext';
-import { Conversation, ConversationStatus } from '@/types';
+import { Conversation, ConversationStatus, Agent } from '@/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, MessageSquare } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Filter, MessageSquare, UserCheck, Clock } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 
+function getAgentById(agents: Agent[], agentId: string): Agent | undefined {
+  return agents.find(a => a.id === agentId);
+}
+
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'online': return 'bg-green-500';
+    case 'busy': return 'bg-yellow-500';
+    case 'offline': return 'bg-gray-400';
+    default: return 'bg-gray-400';
+  }
+}
+
 const statusConfig: Record<ConversationStatus, { label: string; className: string }> = {
   new: { label: 'New', className: 'status-badge-new' },
+  assigned: { label: 'Assigned', className: 'status-badge-new' },
   in_progress: { label: 'In Progress', className: 'status-badge-in-progress' },
   escalated: { label: 'Escalated', className: 'status-badge-escalated' },
   resolved: { label: 'Resolved', className: 'status-badge-resolved' },
+  closed: { label: 'Closed', className: 'status-badge-resolved' },
 };
 
 export function ConversationList() {
@@ -24,6 +40,7 @@ export function ConversationList() {
     selectedConversation,
     setSelectedConversation,
     getFilteredConversations,
+    agents,
   } = useChat();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ConversationStatus | 'all'>('all');
@@ -56,7 +73,20 @@ export function ConversationList() {
     return convs.sort(
       (a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
     );
-  }, [selectedBranchId, searchQuery, statusFilter, getFilteredConversations, user]);
+  }, [selectedBranchId, searchQuery, statusFilter, getFilteredConversations, user, agents]);
+
+  // Calculate status counts
+  const allConversations = useMemo(() => {
+    let convs = getFilteredConversations(selectedBranchId);
+    if (user?.role === 'agent') {
+      convs = convs.filter(c => c.assignedAgentId === user.id || !c.assignedAgentId);
+    }
+    return convs;
+  }, [selectedBranchId, getFilteredConversations, user]);
+
+  const pendingCount = allConversations.filter(c => c.status === 'new' || c.status === 'assigned').length;
+  const inProgressCount = allConversations.filter(c => c.status === 'in_progress').length;
+  const completedCount = allConversations.filter(c => c.status === 'resolved' || c.status === 'closed').length;
 
   return (
     <div className="w-80 bg-card border-r border-border flex flex-col h-full">
@@ -82,17 +112,30 @@ export function ConversationList() {
           >
             All
           </Button>
-          {(Object.keys(statusConfig) as ConversationStatus[]).map((status) => (
-            <Button
-              key={status}
-              size="sm"
-              variant={statusFilter === status ? 'default' : 'outline'}
-              className="h-7 text-xs"
-              onClick={() => setStatusFilter(status)}
-            >
-              {statusConfig[status].label}
-            </Button>
-          ))}
+          <Button
+            size="sm"
+            variant={statusFilter === 'new' || statusFilter === 'assigned' ? 'default' : 'outline'}
+            className="h-7 text-xs"
+            onClick={() => setStatusFilter('new')}
+          >
+            Pending ({pendingCount})
+          </Button>
+          <Button
+            size="sm"
+            variant={statusFilter === 'in_progress' ? 'default' : 'outline'}
+            className="h-7 text-xs"
+            onClick={() => setStatusFilter('in_progress')}
+          >
+            In Progress ({inProgressCount})
+          </Button>
+          <Button
+            size="sm"
+            variant={statusFilter === 'resolved' || statusFilter === 'closed' ? 'default' : 'outline'}
+            className="h-7 text-xs"
+            onClick={() => setStatusFilter('resolved')}
+          >
+            Completed ({completedCount})
+          </Button>
         </div>
       </div>
 
@@ -125,8 +168,11 @@ interface ConversationItemProps {
 }
 
 function ConversationItem({ conversation, isSelected, onClick }: ConversationItemProps) {
-  const { branches } = useChat();
+  const { branches, agents } = useChat();
   const branch = branches.find(b => b.id === conversation.branchId);
+  const assignedAgent = conversation.assignedAgentId 
+    ? agents.find(a => a.id === conversation.assignedAgentId) 
+    : null;
   const config = statusConfig[conversation.status];
 
   return (
@@ -154,10 +200,16 @@ function ConversationItem({ conversation, isSelected, onClick }: ConversationIte
         <p className="text-xs text-muted-foreground truncate mb-2">
           {conversation.lastMessage}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-[10px] px-1.5 py-0">
             {branch?.name}
           </Badge>
+          {assignedAgent && (
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 flex items-center gap-1">
+              <UserCheck className="h-3 w-3" />
+              {assignedAgent.name}
+            </Badge>
+          )}
           <Badge className={cn('text-[10px] px-1.5 py-0', config.className)}>
             {config.label}
           </Badge>

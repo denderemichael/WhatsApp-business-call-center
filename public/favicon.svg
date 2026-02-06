@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="45" fill="#22C55E"/>
+  <!-- WhatsApp-style chat bubble -->
+  <path d="M25 35 Q25 25 35 25 L65 25 Q75 25 75 35 L75 55 Q75 65 65 65 L45 65 L35 75 L35 65 Q25 65 25 55 Z" fill="white"/>
+  <!-- Message icon inside -->
+  <circle cx="40" cy="45" r="5" fill="#22C55E"/>
+  <circle cx="50" cy="45" r="5" fill="#22C55E"/>
+  <circle cx="60" cy="45" r="5" fill="#22C55E"/>
+</svg>

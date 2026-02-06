@@ -1,5 +1,6 @@
-import { Branch, Agent, Conversation, User } from '@/types';
+import { Branch, Agent, Conversation, User, Task, Report, Notification, AnalyticsData, AdminDashboardStats } from '@/types';
 
+// Users
 export const mockUsers: User[] = [
   {
     id: 'admin-1',
@@ -7,6 +8,7 @@ export const mockUsers: User[] = [
     email: 'admin@whatsapp-hub.com',
     role: 'admin',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+    status: 'online',
   },
   {
     id: 'manager-1',
@@ -15,6 +17,7 @@ export const mockUsers: User[] = [
     role: 'branch_manager',
     branchId: 'branch-1',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael',
+    status: 'online',
   },
   {
     id: 'manager-2',
@@ -23,6 +26,16 @@ export const mockUsers: User[] = [
     role: 'branch_manager',
     branchId: 'branch-2',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Tendai',
+    status: 'online',
+  },
+  {
+    id: 'manager-3',
+    name: 'Grace Ncube',
+    email: 'grace@whatsapp-hub.com',
+    role: 'branch_manager',
+    branchId: 'branch-3',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Grace',
+    status: 'busy',
   },
   {
     id: 'agent-1',
@@ -31,6 +44,7 @@ export const mockUsers: User[] = [
     role: 'agent',
     branchId: 'branch-1',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
+    status: 'online',
   },
   {
     id: 'agent-2',
@@ -39,6 +53,7 @@ export const mockUsers: User[] = [
     role: 'agent',
     branchId: 'branch-1',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
+    status: 'busy',
   },
   {
     id: 'agent-3',
@@ -47,6 +62,25 @@ export const mockUsers: User[] = [
     role: 'agent',
     branchId: 'branch-2',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chipo',
+    status: 'online',
+  },
+  {
+    id: 'agent-4',
+    name: 'Tatenda Mupfupi',
+    email: 'tatenda@whatsapp-hub.com',
+    role: 'agent',
+    branchId: 'branch-2',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Tatenda',
+    status: 'offline',
+  },
+  {
+    id: 'agent-5',
+    name: 'Rumbidzai Chidziva',
+    email: 'rumbi@whatsapp-hub.com',
+    role: 'agent',
+    branchId: 'branch-3',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rumbi',
+    status: 'online',
   },
 ];
 
@@ -58,7 +92,9 @@ export const mockAgents: Agent[] = [
     branchId: 'branch-1',
     status: 'online',
     activeChats: 3,
+    maxChats: 5,
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
+    skills: ['Loan', 'General'],
   },
   {
     id: 'agent-2',
@@ -67,7 +103,9 @@ export const mockAgents: Agent[] = [
     branchId: 'branch-1',
     status: 'busy',
     activeChats: 5,
+    maxChats: 5,
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
+    skills: ['Complaint', 'Repayment'],
   },
   {
     id: 'agent-3',
@@ -76,7 +114,9 @@ export const mockAgents: Agent[] = [
     branchId: 'branch-2',
     status: 'online',
     activeChats: 2,
+    maxChats: 5,
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chipo',
+    skills: ['Loan', 'Repayment'],
   },
   {
     id: 'agent-4',
@@ -85,7 +125,9 @@ export const mockAgents: Agent[] = [
     branchId: 'branch-2',
     status: 'offline',
     activeChats: 0,
+    maxChats: 5,
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Tatenda',
+    skills: ['General', 'Support'],
   },
   {
     id: 'agent-5',
@@ -94,7 +136,9 @@ export const mockAgents: Agent[] = [
     branchId: 'branch-3',
     status: 'online',
     activeChats: 4,
+    maxChats: 5,
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rumbi',
+    skills: ['Loan', 'Complaint'],
   },
 ];
 
@@ -103,6 +147,7 @@ export const mockBranches: Branch[] = [
     id: 'branch-1',
     name: 'Harare CBD',
     location: 'First Street, Harare',
+    whatsappNumber: '+263 712 345 678',
     activeChats: 8,
     pendingChats: 3,
     unassignedChats: 2,
@@ -112,6 +157,7 @@ export const mockBranches: Branch[] = [
     id: 'branch-2',
     name: 'Chitungwiza',
     location: 'Unit L, Chitungwiza',
+    whatsappNumber: '+263 712 345 679',
     activeChats: 5,
     pendingChats: 2,
     unassignedChats: 1,
@@ -121,6 +167,7 @@ export const mockBranches: Branch[] = [
     id: 'branch-3',
     name: 'Bulawayo',
     location: 'Main Street, Bulawayo',
+    whatsappNumber: '+263 712 345 680',
     activeChats: 6,
     pendingChats: 4,
     unassignedChats: 3,
@@ -133,6 +180,7 @@ export const mockConversations: Conversation[] = [
     id: 'conv-1',
     customerPhone: '+263 77 123 4567',
     customerName: 'John Doe',
+    customerEmail: 'john@example.com',
     branchId: 'branch-1',
     assignedAgentId: 'agent-1',
     status: 'in_progress',
@@ -141,6 +189,10 @@ export const mockConversations: Conversation[] = [
     lastMessage: 'When will my loan be approved?',
     lastMessageTime: new Date(Date.now() - 5 * 60000),
     unreadCount: 2,
+    hasTask: true,
+    taskId: 'task-1',
+    source: 'whatsapp',
+    createdAt: new Date(Date.now() - 60 * 60000),
     messages: [
       {
         id: 'msg-1',
@@ -185,13 +237,15 @@ export const mockConversations: Conversation[] = [
     customerPhone: '+263 78 234 5678',
     customerName: 'Mary Smith',
     branchId: 'branch-1',
-    assignedAgentId: 'agent-2',
     status: 'new',
     tags: ['Complaint'],
     notes: '',
     lastMessage: 'I need to speak to a manager urgently!',
     lastMessageTime: new Date(Date.now() - 2 * 60000),
     unreadCount: 1,
+    hasTask: false,
+    source: 'whatsapp',
+    createdAt: new Date(Date.now() - 2 * 60000),
     messages: [
       {
         id: 'msg-5',
@@ -212,10 +266,14 @@ export const mockConversations: Conversation[] = [
     assignedAgentId: 'agent-3',
     status: 'escalated',
     tags: ['Repayment', 'Complaint'],
-    notes: 'Customer disputing late payment fee',
+    notes: 'Customer disputing late payment fee - escalated to manager',
     lastMessage: 'This is unacceptable. I want a refund.',
     lastMessageTime: new Date(Date.now() - 15 * 60000),
     unreadCount: 0,
+    hasTask: true,
+    taskId: 'task-2',
+    source: 'whatsapp',
+    createdAt: new Date(Date.now() - 60 * 60000),
     messages: [
       {
         id: 'msg-6',
@@ -258,6 +316,9 @@ export const mockConversations: Conversation[] = [
     lastMessage: 'Thank you so much for your help!',
     lastMessageTime: new Date(Date.now() - 120 * 60000),
     unreadCount: 0,
+    hasTask: false,
+    source: 'whatsapp',
+    createdAt: new Date(Date.now() - 180 * 60000),
     messages: [
       {
         id: 'msg-9',
@@ -299,6 +360,9 @@ export const mockConversations: Conversation[] = [
     lastMessage: 'Hello, I want to apply for a personal loan',
     lastMessageTime: new Date(Date.now() - 1 * 60000),
     unreadCount: 1,
+    hasTask: false,
+    source: 'whatsapp',
+    createdAt: new Date(Date.now() - 1 * 60000),
     messages: [
       {
         id: 'msg-12',
@@ -323,6 +387,10 @@ export const mockConversations: Conversation[] = [
     lastMessage: 'Can I pay in installments?',
     lastMessageTime: new Date(Date.now() - 10 * 60000),
     unreadCount: 1,
+    hasTask: true,
+    taskId: 'task-3',
+    source: 'whatsapp',
+    createdAt: new Date(Date.now() - 45 * 60000),
     messages: [
       {
         id: 'msg-13',
@@ -354,3 +422,218 @@ export const mockConversations: Conversation[] = [
     ],
   },
 ];
+
+// Tasks for Branch Manager Assignment
+export const mockTasks: Task[] = [
+  {
+    id: 'task-1',
+    branchId: 'branch-1',
+    assignedBy: 'manager-1',
+    assignedTo: 'agent-1',
+    title: 'Follow up on loan application',
+    description: 'Customer John Doe is waiting for loan approval status. Please provide update.',
+    priority: 'high',
+    status: 'in_progress',
+    conversationId: 'conv-1',
+    dueDate: new Date(Date.now() + 24 * 60 * 60000),
+    createdAt: new Date(Date.now() - 30 * 60000),
+    updatedAt: new Date(Date.now() - 25 * 60000),
+    notes: 'Customer has been waiting since yesterday',
+  },
+  {
+    id: 'task-2',
+    branchId: 'branch-2',
+    assignedBy: 'manager-2',
+    assignedTo: 'agent-3',
+    title: 'Review late payment dispute',
+    description: 'Customer Peter Moyo disputing late fee. Review transaction history and resolve.',
+    priority: 'urgent',
+    status: 'pending',
+    conversationId: 'conv-3',
+    dueDate: new Date(Date.now() + 4 * 60 * 60000),
+    createdAt: new Date(Date.now() - 15 * 60000),
+    updatedAt: new Date(Date.now() - 15 * 60000),
+  },
+  {
+    id: 'task-3',
+    branchId: 'branch-2',
+    assignedBy: 'manager-2',
+    assignedTo: 'agent-3',
+    title: 'Discuss payment plan options',
+    description: 'Help customer Farai Mutasa with repayment plan options.',
+    priority: 'normal',
+    status: 'in_progress',
+    conversationId: 'conv-6',
+    createdAt: new Date(Date.now() - 30 * 60000),
+    updatedAt: new Date(Date.now() - 30 * 60000),
+  },
+  {
+    id: 'task-4',
+    branchId: 'branch-1',
+    assignedBy: 'manager-1',
+    assignedTo: 'agent-2',
+    title: 'Handle complaint from Mary Smith',
+    description: 'Customer Mary Smith needs urgent manager assistance. Contact customer directly.',
+    priority: 'urgent',
+    status: 'pending',
+    conversationId: 'conv-2',
+    dueDate: new Date(Date.now() + 2 * 60 * 60000),
+    createdAt: new Date(Date.now() - 2 * 60000),
+    updatedAt: new Date(Date.now() - 2 * 60000),
+  },
+  {
+    id: 'task-5',
+    branchId: 'branch-3',
+    assignedBy: 'manager-3',
+    assignedTo: 'agent-5',
+    title: 'Process personal loan application',
+    description: 'New loan application received from Tinashe Banda. Review and follow up.',
+    priority: 'high',
+    status: 'pending',
+    conversationId: 'conv-5',
+    dueDate: new Date(Date.now() + 48 * 60 * 60000),
+    createdAt: new Date(Date.now() - 1 * 60000),
+    updatedAt: new Date(Date.now() - 1 * 60000),
+  },
+];
+
+// Reports for Branch Manager to Admin
+export const mockReports: Report[] = [
+  {
+    id: 'report-1',
+    branchId: 'branch-1',
+    submittedBy: 'manager-1',
+    reportType: 'daily',
+    title: 'Daily Report - Harare CBD - Feb 4, 2026',
+    content: 'Today was a busy day with 15 new conversations. Resolved 12 conversations with average response time of 2 minutes.',
+    status: 'submitted',
+    createdAt: new Date(Date.now() - 2 * 60 * 60000),
+    submittedAt: new Date(Date.now() - 2 * 60 * 60000),
+    metrics: {
+      totalConversations: 15,
+      resolvedConversations: 12,
+      escalatedConversations: 1,
+      averageResponseTime: 2.5,
+      averageResolutionTime: 15,
+      customerSatisfaction: 4.2,
+      agentPerformance: [
+        { agentId: 'agent-1', agentName: 'James Wilson', conversationsHandled: 8, resolvedConversations: 7, averageResponseTime: 2, averageHandleTime: 12 },
+        { agentId: 'agent-2', agentName: 'Emily Davis', conversationsHandled: 7, resolvedConversations: 5, averageResponseTime: 3, averageHandleTime: 18 },
+      ],
+    },
+  },
+  {
+    id: 'report-2',
+    branchId: 'branch-2',
+    submittedBy: 'manager-2',
+    reportType: 'weekly',
+    title: 'Weekly Report - Chitungwiza - Week 5',
+    content: 'This week we handled 45 conversations with 95% resolution rate. One escalation was properly managed.',
+    status: 'submitted',
+    createdAt: new Date(Date.now() - 24 * 60 * 60000),
+    submittedAt: new Date(Date.now() - 24 * 60 * 60000),
+    metrics: {
+      totalConversations: 45,
+      resolvedConversations: 43,
+      escalatedConversations: 2,
+      averageResponseTime: 3,
+      averageResolutionTime: 20,
+      customerSatisfaction: 4.5,
+      agentPerformance: [
+        { agentId: 'agent-3', agentName: 'Chipo Nyathi', conversationsHandled: 25, resolvedConversations: 24, averageResponseTime: 2.5, averageHandleTime: 15 },
+        { agentId: 'agent-4', agentName: 'Tatenda Mupfupi', conversationsHandled: 20, resolvedConversations: 19, averageResponseTime: 3.5, averageHandleTime: 25 },
+      ],
+    },
+  },
+];
+
+// Notifications for Users
+export const mockNotifications: Notification[] = [
+  {
+    id: 'notif-1',
+    userId: 'admin-1',
+    type: 'report_submitted',
+    title: 'New Report Submitted',
+    message: 'Michael Chen submitted Daily Report for Harare CBD',
+    isRead: false,
+    createdAt: new Date(Date.now() - 2 * 60 * 60000),
+    link: '/analytics?report=report-1',
+    metadata: { reportId: 'report-1', branchId: 'branch-1' },
+  },
+  {
+    id: 'notif-2',
+    userId: 'admin-1',
+    type: 'report_submitted',
+    title: 'New Report Submitted',
+    message: 'Tendai Moyo submitted Weekly Report for Chitungwiza',
+    isRead: false,
+    createdAt: new Date(Date.now() - 24 * 60 * 60000),
+    link: '/analytics?report=report-2',
+    metadata: { reportId: 'report-2', branchId: 'branch-2' },
+  },
+  {
+    id: 'notif-3',
+    userId: 'agent-1',
+    type: 'task_assigned',
+    title: 'New Task Assigned',
+    message: 'Michael Chen assigned you a new task: Follow up on loan application',
+    isRead: true,
+    createdAt: new Date(Date.now() - 30 * 60000),
+    link: '/dashboard?task=task-1',
+    metadata: { taskId: 'task-1' },
+  },
+  {
+    id: 'notif-4',
+    userId: 'agent-3',
+    type: 'task_assigned',
+    title: 'New Task Assigned',
+    message: 'Tendai Moyo assigned you a new task: Review late payment dispute',
+    isRead: false,
+    createdAt: new Date(Date.now() - 15 * 60000),
+    link: '/dashboard?task=task-2',
+    metadata: { taskId: 'task-2' },
+  },
+];
+
+// Analytics Data
+export const mockAnalyticsData: AnalyticsData = {
+  branchId: 'branch-1',
+  dateRange: { start: new Date(Date.now() - 7 * 24 * 60 * 60000), end: new Date() },
+  metrics: {
+    totalConversations: 85,
+    newConversations: 42,
+    resolvedConversations: 78,
+    escalatedConversations: 5,
+    averageResponseTime: 2.5,
+    averageResolutionTime: 18,
+    customerSatisfaction: 4.3,
+  },
+  conversationsByStatus: [
+    { status: 'new', count: 8 },
+    { status: 'in_progress', count: 12 },
+    { status: 'resolved', count: 78 },
+    { status: 'escalated', count: 5 },
+  ],
+  conversationsByTag: [
+    { tag: 'Loan', count: 35 },
+    { tag: 'Repayment', count: 22 },
+    { tag: 'Complaint', count: 15 },
+    { tag: 'General', count: 13 },
+  ],
+  agentMetrics: {
+    online: 8,
+    busy: 5,
+    offline: 3,
+  },
+};
+
+// Admin Dashboard Stats
+export const mockAdminDashboardStats: AdminDashboardStats = {
+  totalBranches: 3,
+  totalAgents: 10,
+  agentsOnline: 6,
+  agentsOffline: 4,
+  totalConversationsToday: 28,
+  pendingReports: 2,
+  escalatedConversations: 3,
+};

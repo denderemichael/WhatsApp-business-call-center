@@ -7,6 +7,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string, role: UserRole) => Promise<boolean>;
   logout: () => void;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,12 +23,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const foundUser = mockUsers.find(u => u.email === email && u.role === role);
     
     if (foundUser || password === 'demo123') {
-      const loggedInUser = foundUser || {
+      const loggedInUser: User = foundUser || {
         id: `user-${Date.now()}`,
         name: email.split('@')[0],
         email,
         role,
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+        status: 'online',
       };
       setUser(loggedInUser);
       return true;
@@ -40,8 +42,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const updateUser = (updates: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...updates } : null);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
