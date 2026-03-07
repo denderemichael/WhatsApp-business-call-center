@@ -1,4 +1,5 @@
 import { useChat } from '@/context/ChatContext';
+import { useRealChat } from '@/context/RealChatContext';
 import { useAuth } from '@/context/AuthContext';
 import { Conversation, ConversationStatus, Agent } from '@/types';
 import { cn } from '@/lib/utils';
@@ -7,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, MessageSquare, UserCheck, Clock } from 'lucide-react';
+import { Search, Filter, MessageSquare, UserCheck, Clock, RefreshCw } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -35,6 +36,12 @@ const statusConfig: Record<ConversationStatus, { label: string; className: strin
 
 export function ConversationList() {
   const { user } = useAuth();
+  // Use real chat context for real backend
+  const { 
+    loading, 
+    error, 
+    refreshConversations 
+  } = useRealChat();
   const {
     selectedBranchId,
     selectedConversation,
@@ -92,7 +99,24 @@ export function ConversationList() {
     <div className="w-80 bg-card border-r border-border flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-border">
-        <h2 className="font-semibold text-foreground mb-3">Conversations</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-foreground">Conversations</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refreshConversations()}
+            disabled={loading}
+            className="h-8 w-8 p-0"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+        {/* Error state */}
+        {error && (
+          <div className="mb-3 p-2 bg-destructive/10 text-destructive text-xs rounded-md">
+            {error}
+          </div>
+        )}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -141,20 +165,34 @@ export function ConversationList() {
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto scrollbar-thin">
-        {conversations.length === 0 ? (
+        {/* Loading state */}
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          </div>
+        )}
+        
+        {/* Empty state */}
+        {!loading && conversations.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full p-6 text-center">
             <MessageSquare className="h-12 w-12 text-muted-foreground/50 mb-3" />
             <p className="text-sm text-muted-foreground">No conversations found</p>
+            {error && <p className="text-xs text-muted-foreground mt-1">Check your connection</p>}
           </div>
-        ) : (
-          conversations.map((conversation) => (
-            <ConversationItem
-              key={conversation.id}
-              conversation={conversation}
-              isSelected={selectedConversation?.id === conversation.id}
-              onClick={() => setSelectedConversation(conversation)}
-            />
-          ))
+        )}
+        
+        {/* Conversations list */}
+        {!loading && conversations.length > 0 && (
+          <>
+            {conversations.map((conversation) => (
+              <ConversationItem
+                key={conversation.id}
+                conversation={conversation}
+                isSelected={selectedConversation?.id === conversation.id}
+                onClick={() => setSelectedConversation(conversation)}
+              />
+            ))}
+          </>
         )}
       </div>
     </div>

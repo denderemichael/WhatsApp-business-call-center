@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChat } from '@/context/ChatContext';
+import { useRealChat } from '@/context/RealChatContext';
 import { useAuth } from '@/context/AuthContext';
 import { Message, ConversationStatus, Task } from '@/types';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,9 @@ const statusConfig: Record<ConversationStatus, { label: string; icon: typeof Clo
 export function ChatWindow() {
   const { user } = useAuth();
   const { 
+    refreshCurrentConversation 
+  } = useRealChat();
+  const { 
     selectedConversation, 
     sendMessage, 
     updateConversationStatus, 
@@ -59,6 +63,8 @@ export function ChatWindow() {
     assignConversation,
   } = useChat();
   const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Check if user can reply (agents can reply to any conversation in their branch)
@@ -90,6 +96,13 @@ export function ChatWindow() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [selectedConversation?.messages]);
 
+  // Refresh conversation when selected
+  useEffect(() => {
+    if (selectedConversation) {
+      refreshCurrentConversation();
+    }
+  }, [selectedConversation?.id, refreshCurrentConversation]);
+
   if (!selectedConversation) {
     return (
       <div className="flex-1 flex items-center justify-center bg-muted/30">
@@ -102,10 +115,18 @@ export function ChatWindow() {
     );
   }
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (newMessage.trim() && canReply) {
-      sendMessage(selectedConversation.id, newMessage.trim());
-      setNewMessage('');
+      setSending(true);
+      setSendError(null);
+      try {
+        await sendMessage(selectedConversation.id, newMessage.trim());
+        setNewMessage('');
+      } catch (err) {
+        setSendError(err instanceof Error ? err.message : 'Failed to send message');
+      } finally {
+        setSending(false);
+      }
     }
   };
 
@@ -248,15 +269,25 @@ export function ChatWindow() {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 className="flex-1"
-                disabled={selectedConversation.status === 'resolved' || selectedConversation.status === 'closed'}
+                disabled={!canReply || sending || selectedConversation.status === 'resolved' || selectedConversation.status === 'closed'}
               />
               <Button
                 onClick={handleSend}
-                disabled={!newMessage.trim() || selectedConversation.status === 'resolved' || selectedConversation.status === 'closed'}
+                disabled={!newMessage.trim() || sending || !canReply || selectedConversation.status === 'resolved' || selectedConversation.status === 'closed'}
               >
-                <Send className="h-4 w-4" />
+                {sending ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </div>
+            {/* Error display */}
+            {sendError && (
+              <p className="text-xs text-destructive mt-2 flex items-center gap-1">
+                ⚠️ {sendError}
+              </p>
+            )}
             {selectedConversation.status === 'resolved' || selectedConversation.status === 'closed' ? (
               <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                 <Lock className="h-3 w-3" />

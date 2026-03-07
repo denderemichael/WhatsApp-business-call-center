@@ -25,8 +25,8 @@ export default function AnalyticsPage() {
     return <Navigate to="/login" replace />;
   }
 
-  // Only admin and branch manager can access analytics
-  if (user?.role !== 'admin' && user?.role !== 'branch_manager') {
+  // Only admin can access analytics
+  if (user?.role !== 'admin') {
     return <Navigate to="/dashboard" replace />;
   }
 

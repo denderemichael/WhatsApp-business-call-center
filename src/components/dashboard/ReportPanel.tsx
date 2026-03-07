@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useChat } from '@/context/ChatContext';
+import { useRealChat } from '@/context/RealChatContext';
 import { Report, ReportStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,13 +51,13 @@ const statusColors: Record<ReportStatus, string> = {
 
 export function ReportPanel() {
   const { user } = useAuth();
-  const { reports, createReport, updateReportStatus, adminDashboardStats } = useChat();
+  const { reports, createReport, updateReportStatus, adminDashboardStats } = useRealChat();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [filter, setFilter] = useState<'all' | 'submitted' | 'approved' | 'rejected'>('all');
 
   const isAdmin = user?.role === 'admin';
-  const isBranchManager = user?.role === 'branch_manager';
+  const isBranchManager = user?.role === 'branch_manager' || user?.role === 'manager';
 
   // Filter reports based on role
   const filteredReports = reports.filter(report => {
@@ -65,7 +65,7 @@ export function ReportPanel() {
       return true; // Admin sees all reports
     }
     if (isBranchManager) {
-      return report.branchId === user.branchId; // Manager sees only their branch
+      return report.branchId === user.branchId || !report.branchId; // Manager sees only their branch
     }
     return false;
   }).filter(report => {
@@ -84,6 +84,12 @@ export function ReportPanel() {
             <FileText className="h-5 w-5" />
             Reports
           </h2>
+          {isBranchManager && (
+            <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Create Report
+            </Button>
+          )}
           {isAdmin && pendingReviewCount > 0 && (
             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
               {pendingReviewCount} pending review
@@ -233,56 +239,78 @@ interface CreateReportDialogProps {
 
 function CreateReportDialog({ open, onOpenChange, onCreate }: CreateReportDialogProps) {
   const { user } = useAuth();
+  const { reports, createReport, updateReportStatus, getBranchReports, api } = useRealChat();
+  const { branches } = useRealChat();
   const { toast } = useToast();
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [reportType, setReportType] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
-  
-  // Editable metrics
-  const [totalConversations, setTotalConversations] = useState(0);
-  const [resolvedConversations, setResolvedConversations] = useState(0);
-  const [escalatedConversations, setEscalatedConversations] = useState(0);
-  const [averageResponseTime, setAverageResponseTime] = useState(0);
-  const [averageResolutionTime, setAverageResolutionTime] = useState(0);
-  const [customerSatisfaction, setCustomerSatisfaction] = useState(0);
+  const [description, setDescription] = useState('');
+  const [selectedBranchId, setSelectedBranchId] = useState(user?.branchId || '');
+  const [selectedAgentId, setSelectedAgentId] = useState('');
+  const [availableAgents, setAvailableAgents] = useState<Array<{id: string; name: string; branchId: string}>>([]);
+
+  const isAdmin = user?.role === 'admin';
+  const isBranchManager = user?.role === 'branch_manager' || user?.role === 'manager';
+  const canSelectBranch = isAdmin || isBranchManager;
+
+  // Fetch agents when branch changes or when dialog opens
+  useEffect(() => {
+    if (!open) return; // Only fetch when dialog is open
+    const fetchAgents = async () => {
+      try {
+        // If a branch is selected, fetch agents for that branch only
+        if (selectedBranchId) {
+          const agents = await api.getAgents(selectedBranchId);
+          setAvailableAgents(agents.map(a => ({ id: a.id, name: a.name, branchId: selectedBranchId })));
+        } else {
+          // If no branch selected, get all agents
+          const agents = await api.getAgents();
+          setAvailableAgents(agents.map(a => ({ id: a.id, name: a.name, branchId: '' })));
+        }
+      } catch (err) {
+        console.error('Error fetching agents:', err);
+        setAvailableAgents([]);
+      }
+    };
+    fetchAgents();
+  }, [selectedBranchId, api, open]);
+
+  // Reset agent selection when branch changes
+  useEffect(() => {
+    setSelectedAgentId('');
+  }, [selectedBranchId]);
 
   const handleCreate = () => {
-    if (!title || !content || !user?.branchId) return;
+    if (!title || !description || !selectedBranchId) return;
 
     onCreate({
-      branchId: user.branchId,
-      submittedBy: user.id,
-      reportType,
+      branchId: selectedBranchId,
+      submittedBy: user?.id,
+      reportType: 'custom',
       title,
-      content,
+      content: description,
       status: 'submitted',
       submittedAt: new Date(),
       metrics: {
-        totalConversations,
-        resolvedConversations,
-        escalatedConversations,
-        averageResponseTime,
-        averageResolutionTime,
-        customerSatisfaction,
+        totalConversations: 0,
+        resolvedConversations: 0,
+        escalatedConversations: 0,
+        averageResponseTime: 0,
+        averageResolutionTime: 0,
+        customerSatisfaction: 0,
         agentPerformance: [],
       },
     });
 
     toast({
       title: 'Report Submitted',
-      description: `Your ${reportType} report has been submitted to the admin for review.`,
+      description: 'Your report has been submitted to the admin for review.',
     });
 
     // Reset form
     setTitle('');
-    setContent('');
-    setReportType('daily');
-    setTotalConversations(0);
-    setResolvedConversations(0);
-    setEscalatedConversations(0);
-    setAverageResponseTime(0);
-    setAverageResolutionTime(0);
-    setCustomerSatisfaction(0);
+    setDescription('');
+    setSelectedBranchId(user?.branchId || '');
+    setSelectedAgentId('');
     onOpenChange(false);
   };
 
@@ -293,116 +321,77 @@ function CreateReportDialog({ open, onOpenChange, onCreate }: CreateReportDialog
           <DialogTitle>Create New Report</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          {/* Branch Selection */}
           <div className="space-y-2">
-            <Label htmlFor="title">Report Title</Label>
+            <Label>Branch</Label>
+            <Select 
+              value={selectedBranchId} 
+              onValueChange={setSelectedBranchId}
+              disabled={!canSelectBranch}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select branch" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((branch) => (
+                  <SelectItem key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Related Agent (Optional) */}
+          <div className="space-y-2">
+            <Label>Related Agent (Optional)</Label>
+            <Select 
+              value={selectedAgentId} 
+              onValueChange={setSelectedAgentId}
+              disabled={!selectedBranchId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select agent" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">None</SelectItem>
+                {availableAgents.map((agent) => (
+                  <SelectItem key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Subject */}
+          <div className="space-y-2">
+            <Label htmlFor="title">Subject</Label>
             <Input
               id="title"
-              placeholder="e.g., Daily Report - Harare CBD - Feb 4, 2026"
+              placeholder="Enter report subject"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
 
+          {/* Description */}
           <div className="space-y-2">
-            <Label>Report Type</Label>
-            <Select value={reportType} onValueChange={(v) => setReportType(v as typeof reportType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Daily Report</SelectItem>
-                <SelectItem value="weekly">Weekly Report</SelectItem>
-                <SelectItem value="monthly">Monthly Report</SelectItem>
-                <SelectItem value="custom">Custom Report</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="content">Report Content</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
-              id="content"
-              placeholder="Summarize the report..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={6}
+              id="description"
+              placeholder="Describe the issue or report..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
             />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
-            <div className="text-center">
-              <Input
-                type="number"
-                value={totalConversations}
-                onChange={(e) => setTotalConversations(Number(e.target.value))}
-                className="text-center text-2xl font-bold h-10"
-                min={0}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Total Chats</p>
-            </div>
-            <div className="text-center">
-              <Input
-                type="number"
-                value={resolvedConversations}
-                onChange={(e) => setResolvedConversations(Number(e.target.value))}
-                className="text-center text-2xl font-bold h-10 text-green-600"
-                min={0}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Resolved</p>
-            </div>
-            <div className="text-center">
-              <Input
-                type="number"
-                value={averageResponseTime}
-                onChange={(e) => setAverageResponseTime(Number(e.target.value))}
-                className="text-center text-2xl font-bold h-10 text-blue-600"
-                min={0}
-                step={0.1}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Avg Response (min)</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
-            <div className="text-center">
-              <Input
-                type="number"
-                value={escalatedConversations}
-                onChange={(e) => setEscalatedConversations(Number(e.target.value))}
-                className="text-center text-lg font-bold h-8"
-                min={0}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Escalated</p>
-            </div>
-            <div className="text-center">
-              <Input
-                type="number"
-                value={averageResolutionTime}
-                onChange={(e) => setAverageResolutionTime(Number(e.target.value))}
-                className="text-center text-lg font-bold h-8"
-                min={0}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Avg Resolution (min)</p>
-            </div>
-            <div className="text-center">
-              <Input
-                type="number"
-                value={customerSatisfaction}
-                onChange={(e) => setCustomerSatisfaction(Number(e.target.value))}
-                className="text-center text-lg font-bold h-8"
-                min={0}
-                max={5}
-                step={0.1}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Customer Satisfaction</p>
-            </div>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={!title || !content}>
+          <Button onClick={handleCreate} disabled={!title || !selectedBranchId || !description}>
             <Send className="h-4 w-4 mr-1" />
             Submit Report
           </Button>

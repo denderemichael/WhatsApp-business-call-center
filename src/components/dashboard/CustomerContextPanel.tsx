@@ -1,4 +1,5 @@
 import { useChat } from '@/context/ChatContext';
+import { useRealChat } from '@/context/RealChatContext';
 import { useAuth } from '@/context/AuthContext';
 import { ConversationTag } from '@/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -7,6 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
+  History,
+  UserPlus,
+  MessageSquare,
+  ArrowRight,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+} from 'lucide-react';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -14,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 // Zimbabwe locations for branches
 const zimbabweLocations: Record<string, string> = {
@@ -40,9 +50,37 @@ const tagColors: Record<ConversationTag, string> = {
 export function CustomerContextPanel({ onClose }: { onClose?: () => void }) {
   const { selectedConversation, branches, agents, updateNotes, transferConversation, escalateConversation } = useChat();
   const { user } = useAuth();
+  const { api } = useRealChat();
   const [notes, setNotes] = useState(selectedConversation?.notes || '');
   const [selectedAgentId, setSelectedAgentId] = useState('');
   const [notesSaved, setNotesSaved] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<Array<{
+    id: string;
+    action: string;
+    performed_by: string;
+    created_at: string;
+    details?: string;
+  }>>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+  // Fetch audit logs when conversation is selected
+  const fetchAuditLogs = useCallback(async () => {
+    if (!selectedConversation) return;
+    
+    try {
+      setLoadingLogs(true);
+      const logs = await api.getCaseLogs(selectedConversation.id);
+      setAuditLogs(logs as any);
+    } catch (err) {
+      console.error('Error fetching audit logs:', err);
+    } finally {
+      setLoadingLogs(false);
+    }
+  }, [selectedConversation, api]);
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, [fetchAuditLogs]);
 
   if (!selectedConversation) {
     return (
@@ -86,6 +124,23 @@ export function CustomerContextPanel({ onClose }: { onClose?: () => void }) {
       }
     }
     return 'location_on'; // Default location icon
+  };
+
+  // Get icon for audit action
+  const getActionIcon = (action: string) => {
+    if (action.includes('assign')) return <UserPlus className="h-3 w-3" />;
+    if (action.includes('message') || action.includes('reply')) return <MessageSquare className="h-3 w-3" />;
+    if (action.includes('transfer')) return <ArrowRight className="h-3 w-3" />;
+    if (action.includes('escalate')) return <AlertCircle className="h-3 w-3" />;
+    if (action.includes('resolve') || action.includes('close')) return <CheckCircle className="h-3 w-3" />;
+    return <Clock className="h-3 w-3" />;
+  };
+
+  // Format action for display
+  const formatAction = (action: string) => {
+    return action
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
   };
 
   return (
@@ -255,6 +310,47 @@ export function CustomerContextPanel({ onClose }: { onClose?: () => void }) {
           </Card>
         </div>
       )}
+
+      {/* Audit Logs Section */}
+      <div className="p-4 border-t border-border">
+        <div className="flex items-center gap-2 mb-3">
+          <History className="h-4 w-4 text-muted-foreground" />
+          <Label className="text-sm font-medium">Activity Log</Label>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto h-6 w-6 p-0"
+            onClick={fetchAuditLogs}
+            disabled={loadingLogs}
+          >
+            <Clock className={`h-3 w-3 ${loadingLogs ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+        
+        {loadingLogs ? (
+          <div className="flex justify-center py-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          </div>
+        ) : auditLogs.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No activity recorded</p>
+        ) : (
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {auditLogs.slice(0, 10).map((log) => (
+              <div key={log.id} className="flex items-start gap-2 text-xs p-2 rounded bg-muted/50">
+                <div className="mt-0.5">
+                  {getActionIcon(log.action)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-foreground">{formatAction(log.action)}</p>
+                  <p className="text-muted-foreground">
+                    {log.performed_by} • {new Date(log.created_at).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

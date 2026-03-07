@@ -28,8 +28,8 @@ export default function ReportsPage() {
     return <Navigate to="/login" replace />;
   }
 
-  // Only admin and branch manager can access reports
-  if (user?.role !== 'admin' && user?.role !== 'branch_manager') {
+  // Only admin and manager can access reports
+  if (user?.role !== 'admin' && user?.role !== 'manager' && user?.role !== 'branch_manager') {
     return <Navigate to="/dashboard" replace />;
   }
 

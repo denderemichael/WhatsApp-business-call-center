@@ -5,8 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { ChatProvider } from "@/context/ChatContext";
+import { RealChatProvider } from "@/context/RealChatContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import TasksPage from "./pages/Tasks";
 import AnalyticsPage from "./pages/Analytics";
@@ -19,7 +21,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <ChatProvider>
+      <RealChatProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -27,6 +29,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
@@ -37,7 +40,7 @@ const App = () => (
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
-      </ChatProvider>
+      </RealChatProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

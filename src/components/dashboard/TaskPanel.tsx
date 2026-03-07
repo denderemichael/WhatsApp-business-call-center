@@ -79,7 +79,7 @@ export function TaskPanel({ onSelectTask }: TaskPanelProps) {
 
   // Filter tasks based on user role
   const filteredTasks = tasks.filter(task => {
-    if (user?.role === 'branch_manager') {
+    if (user?.role === 'branch_manager' || user?.role === 'manager') {
       // Branch managers see tasks in their branch
       const branch = branches.find(b => b.id === user.branchId);
       return task.branchId === branch?.id;
@@ -108,10 +108,10 @@ export function TaskPanel({ onSelectTask }: TaskPanelProps) {
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-lg">Tasks</h2>
-          {user?.role === 'branch_manager' && (
+          {(user?.role === 'branch_manager' || user?.role === 'manager' || user?.role === 'admin') && (
             <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-1" />
-              New Task
+              Create Assignment
             </Button>
           )}
         </div>

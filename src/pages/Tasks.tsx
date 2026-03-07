@@ -28,5 +28,6 @@ export default function TasksPage() {
     return <Navigate to="/login" replace />;
   }
 
+  // All roles can access tasks (agents see their tasks, managers see created tasks)
   return <TasksContent />;
 }

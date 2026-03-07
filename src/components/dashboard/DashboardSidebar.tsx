@@ -31,7 +31,7 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
     navigate('/login');
   };
 
-  const canViewAllBranches = user?.role === 'admin' || user?.role === 'branch_manager';
+  const canViewAllBranches = user?.role === 'admin' || user?.role === 'branch_manager' || user?.role === 'manager';
   const visibleBranches = canViewAllBranches
     ? branches
     : branches.filter(b => b.id === user?.branchId);
@@ -151,8 +151,8 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
           </Button>
         )}
 
-        {/* Tasks - Branch Managers Only */}
-        {(user?.role === 'branch_manager' || user?.role === 'admin') && (
+        {/* Tasks - Managers Only */}
+        {(user?.role === 'branch_manager' || user?.role === 'manager' || user?.role === 'admin') && (
           <Button
             variant="ghost"
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -180,8 +180,8 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
           </Button>
         )}
 
-        {/* Branches - Only for Admins and Branch Managers */}
-        {(user?.role === 'admin' || user?.role === 'branch_manager') && (
+        {/* Branches - Only for Admins and Managers */}
+        {(user?.role === 'admin' || user?.role === 'branch_manager' || user?.role === 'manager') && (
           <Collapsible open={branchesOpen} onOpenChange={setBranchesOpen}>
             <CollapsibleTrigger asChild>
               <Button
@@ -230,7 +230,7 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
         )}
 
         {/* Admin/Manager only sections */}
-        {(user?.role === 'admin' || user?.role === 'branch_manager') && (
+        {(user?.role === 'admin' || user?.role === 'branch_manager' || user?.role === 'manager') && (
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -301,8 +301,8 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
           </>
         )}
 
-        {/* Analyst/Analytics - Admin and Branch Manager */}
-        {(user?.role === 'admin' || user?.role === 'branch_manager') && (
+        {/* Analyst/Analytics - Admin Only */}
+        {user?.role === 'admin' && (
           <Button
             variant="ghost"
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -313,8 +313,8 @@ export function DashboardSidebar({ showConversationList, setShowConversationList
           </Button>
         )}
 
-        {/* Reports - Admin and Branch Manager */}
-        {(user?.role === 'admin' || user?.role === 'branch_manager') && (
+        {/* Reports - Admin and Manager */}
+        {(user?.role === 'admin' || user?.role === 'branch_manager' || user?.role === 'manager') && (
           <Button
             variant="ghost"
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"

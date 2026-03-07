@@ -3,7 +3,7 @@ import { Conversation, ConversationStatus, Branch, Agent, Task, TaskStatus, Task
 import { mockConversations, mockBranches, mockAgents, mockTasks, mockReports, mockNotifications, mockAnalyticsData, mockAdminDashboardStats, mockUsers } from '@/data/mockData';
 import mockApi from '@/services/mockApiService';
 
-interface ChatContextType {
+export interface ChatContextType {
   // Conversations
   conversations: Conversation[];
   selectedConversation: Conversation | null;
@@ -54,7 +54,7 @@ interface ChatContextType {
   updateAgentStatus: (agentId: string, status: 'online' | 'busy' | 'offline') => Promise<void>;
 }
 
-const ChatContext = createContext<ChatContextType | undefined>(undefined);
+export const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);

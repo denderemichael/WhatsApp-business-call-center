@@ -2,7 +2,7 @@
 // Core Types
 // ============================================================================
 
-export type UserRole = 'admin' | 'branch_manager' | 'agent';
+export type UserRole = 'admin' | 'manager' | 'branch_manager' | 'agent';
 
 // ============================================================================
 // User & Authentication Types
@@ -457,6 +457,14 @@ export interface Permission {
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   admin: [
     { resource: '*', actions: ['create', 'read', 'update', 'delete', 'assign', 'escalate', 'approve'] },
+  ],
+  manager: [
+    { resource: 'conversation', actions: ['create', 'read', 'update', 'assign', 'escalate'] },
+    { resource: 'task', actions: ['create', 'read', 'update', 'assign'] },
+    { resource: 'report', actions: ['create', 'read', 'update', 'approve'] },
+    { resource: 'agent', actions: ['read', 'update'] },
+    { resource: 'escalation', actions: ['read', 'update'] },
+    { resource: 'analytics', actions: ['read'] },
   ],
   branch_manager: [
     { resource: 'conversation', actions: ['create', 'read', 'update', 'assign', 'escalate'] },
