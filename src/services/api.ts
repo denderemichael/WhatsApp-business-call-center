@@ -12,7 +12,7 @@
 
 import { Report, ReportStatus, Task, User } from '../types/index';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE_URL = ''; // Use relative paths for Vercel serverless functions
 
 // Types matching backend
 interface Case {
@@ -76,7 +76,8 @@ class ApiService {
   }
 
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+    // Use /api prefix for Vercel serverless functions
+    const url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
     
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -518,7 +519,7 @@ class ApiService {
    * Signup with email, password, name and role
    */
   async signup(name: string, email: string, password: string, role: string, branchId?: string): Promise<{ token: string; user: User }> {
-    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+    const response = await fetch(`/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password, role, branchId }),
@@ -538,7 +539,7 @@ class ApiService {
    * Login with email and password - calls real backend
    */
   async login(email: string, password: string): Promise<{ token: string; user: User }> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
