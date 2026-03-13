@@ -1,18 +1,21 @@
 /**
  * Real Backend API Service
  * 
- * Connects frontend to the Node.js + Express + Supabase backend
+ * Connects frontend to the backend
  * 
- * Base URL: http://localhost:3000 (development)
+ * For local development (npm run dev): Uses Vite proxy to Express server on port 3000
+ * For production (Vercel): Uses relative paths /api/* to Vercel serverless functions
  * 
- * Usage:
- * import api from '@/services/api';
- * const cases = await api.getCases();
+ * The Vite proxy configuration (vite.config.ts) maps /api/* to localhost:3000
+ * In production, /api/* is handled by Vercel's serverless functions
  */
 
 import { Report, ReportStatus, Task, User } from '../types/index';
 
-const API_BASE_URL = ''; // Use relative paths for Vercel serverless functions
+// Use environment variable, fallback to relative paths
+// In development: Vite proxy handles /api/* -> localhost:3000
+// In production: Relative paths work with Vercel serverless functions
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 // Types matching backend
 interface Case {
@@ -76,8 +79,11 @@ class ApiService {
   }
 
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    // Use /api prefix for Vercel serverless functions
-    const url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+    // Build full URL: API_BASE_URL (from env) + endpoint
+    // In production: API_BASE_URL = '' (relative path)
+    // In development: API_BASE_URL can be set to http://localhost:3000 or let Vite proxy handle it
+    const baseUrl = API_BASE_URL || '';
+    const url = endpoint.startsWith('/api') ? `${baseUrl}${endpoint}` : `${baseUrl}/api${endpoint}`;
     
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -519,18 +525,12 @@ class ApiService {
    * Signup with email, password, name and role
    */
   async signup(name: string, email: string, password: string, role: string, branchId?: string): Promise<{ token: string; user: User }> {
-    const response = await fetch(`/api/auth/signup`, {
+    // Use this.fetch() to properly handle base URL from environment
+    const data = await this.fetch<{ token: string; user: User }>('/api/auth/signup', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password, role, branchId }),
     });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Signup failed' }));
-      throw new Error(error.error || 'Signup failed');
-    }
-
-    const data = await response.json();
     this.setToken(data.token);
     return data;
   }
@@ -539,19 +539,11 @@ class ApiService {
    * Login with email and password - calls real backend
    */
   async login(email: string, password: string): Promise<{ token: string; user: User }> {
-    const response = await fetch(`/api/auth/login`, {
+    // Use this.fetch() to properly handle base URL from environment
+    const data = await this.fetch<{ token: string; user: User }>('/api/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Login failed' }));
-      throw new Error(error.error || 'Login failed');
-    }
-
-    const data = await response.json();
-    this.setToken(data.token);
     return data;
   }
 
