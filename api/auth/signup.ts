@@ -1,5 +1,5 @@
-import type { VercelRequest, VercelResponse } from '../types/vercel';
-import { supabaseAdmin } from '../../lib/supabaseClient';
+import type { VercelRequest, VercelResponse } from '../types/vercel.js';
+import { supabaseAdmin } from '../../lib/supabaseClient.js';
 
 interface SignupRequestBody {
   email: string;
