@@ -6,11 +6,5 @@
     "api/**/*.ts": {
       "runtime": "nodejs18.x"
     }
-  },
-  "env": {
-    "SUPABASE_URL": "@supabase-url",
-    "SUPABASE_ANON_KEY": "@supabase-anon-key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key",
-    "JWT_SECRET": "@jwt-secret"
   }
 }
