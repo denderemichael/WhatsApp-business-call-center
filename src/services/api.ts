@@ -67,15 +67,33 @@ interface CaseFilters {
 class ApiService {
   private token: string | null = null;
 
+  constructor() {
+    // Load token from localStorage on initialization
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        this.token = storedToken;
+      }
+    }
+  }
+
   /**
    * Set auth token for requests
    */
   setToken(token: string) {
     this.token = token;
+    // Also persist to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', token);
+    }
   }
 
   clearToken() {
     this.token = null;
+    // Also clear from localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+    }
   }
 
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -544,6 +562,9 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
+    
+    // Set token after successful login
+    this.setToken(data.token);
     return data;
   }
 

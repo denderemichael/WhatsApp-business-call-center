@@ -25,16 +25,17 @@ export default async function handler(
   }
 
   try {
-    // Get user from auth header
+    // Get authorization header
     const authHeader = request.headers.authorization;
-    if (!authHeader) {
+    
+    // Validate header format - must be 'Bearer <token>'
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       response.status(401).json({ error: 'Authorization required' });
       return;
     }
 
-    // Handle both string and string[] types for authorization header
-    const authValue = Array.isArray(authHeader) ? authHeader[0] : authHeader;
-    const token = authValue.replace('Bearer ', '');
+    // Extract token from 'Bearer <token>'
+    const token = authHeader.split(' ')[1];
     
     // Verify the user
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
