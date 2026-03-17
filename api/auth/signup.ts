@@ -32,9 +32,12 @@ export default async function handler(
       return;
     }
 
+    // Sanitize email - trim and lowercase
+    const emailClean = email.trim().toLowerCase();
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(emailClean)) {
       response.status(400).json({ error: 'Invalid email format' });
       return;
     }
@@ -45,16 +48,15 @@ export default async function handler(
       return;
     }
 
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({
-      email,
+    // Create user in Supabase Auth using admin API (avoids rate limits)
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: emailClean,
       password,
-      options: {
-        data: {
-          name,
-          role,
-          branch_id: branch_id || null,
-        },
+      email_confirm: true,
+      user_metadata: {
+        name,
+        role,
+        branch_id: branch_id || null,
       },
     });
 
@@ -62,7 +64,7 @@ export default async function handler(
       console.error('Auth signup error:', authError);
       
       // Handle specific auth errors
-      if (authError.message.includes('already registered')) {
+      if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
         response.status(400).json({ error: 'User with this email already exists' });
         return;
       }
@@ -81,7 +83,7 @@ export default async function handler(
       .from('users')
       .insert({
         id: authData.user.id,
-        email,
+        email: emailClean,
         name,
         role,
         branch_id: branch_id || null,

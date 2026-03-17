@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '../types/vercel.js';
-import { supabaseAdmin } from '../../lib/supabaseClient.js';
+import { supabase, supabaseAdmin } from '../../lib/supabaseClient.js';
 
 interface LoginRequestBody {
   email: string;
@@ -29,9 +29,12 @@ export default async function handler(
       return;
     }
 
-    // Authenticate user with Supabase
-    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
-      email,
+    // Sanitize email - trim and lowercase
+    const emailClean = email.trim().toLowerCase();
+
+    // Authenticate user with Supabase using anon key client
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: emailClean,
       password,
     });
 
@@ -53,7 +56,7 @@ export default async function handler(
       return;
     }
 
-    // Get user profile from users table
+    // Get user profile from users table using admin client
     const { data: profileData, error: profileError } = await supabaseAdmin
       .from('users')
       .select('*')
