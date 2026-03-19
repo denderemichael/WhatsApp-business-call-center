@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '../types/vercel.js';
-import { supabase, supabaseAdmin } from '../../lib/supabaseClient.js';
+import { supabaseAdmin } from '../../lib/supabaseClient.js';
 
 interface LoginRequestBody {
   email: string;
@@ -32,8 +32,15 @@ export default async function handler(
     // Sanitize email - trim and lowercase
     const emailClean = email.trim().toLowerCase();
 
-    // Authenticate user with Supabase using anon key client
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailClean)) {
+      response.status(400).json({ error: 'Invalid email format' });
+      return;
+    }
+
+    // Authenticate user with Supabase
+    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
       email: emailClean,
       password,
     });
@@ -51,7 +58,7 @@ export default async function handler(
       return;
     }
 
-    if (!authData.user) {
+    if (!authData.user || !authData.session) {
       response.status(401).json({ error: 'Authentication failed' });
       return;
     }
@@ -61,7 +68,7 @@ export default async function handler(
       .from('users')
       .select('*')
       .eq('id', authData.user.id)
-      .single();
+      .maybeSingle();
 
     if (profileError) {
       console.error('Profile fetch error:', profileError);
@@ -69,11 +76,15 @@ export default async function handler(
       return;
     }
 
-    // Generate JWT token
-    const token = authData.session?.access_token;
+    if (!profileData) {
+      response.status(404).json({ error: 'User profile not found' });
+      return;
+    }
 
+    // Return real Supabase token
     response.status(200).json({
       message: 'Login successful',
+      token: authData.session.access_token,
       user: {
         id: profileData.id,
         email: profileData.email,
@@ -82,11 +93,6 @@ export default async function handler(
         branchId: profileData.branch_id,
         avatar: profileData.avatar,
         status: profileData.status,
-      },
-      token,
-      session: {
-        expiresAt: authData.session?.expires_at,
-        refreshToken: authData.session?.refresh_token,
       },
     });
   } catch (error) {

@@ -5,7 +5,7 @@ interface SignupRequestBody {
   email: string;
   password: string;
   name: string;
-  role?: 'admin' | 'manager' | 'branch_manager' | 'agent';
+  role?: string;
   branch_id?: string;
 }
 
@@ -25,6 +25,9 @@ export default async function handler(
 
   try {
     const { email, password, name, role = 'agent', branch_id } = request.body as SignupRequestBody;
+
+    // Log incoming role for debugging
+    console.log("Incoming role:", `"${role}"`);
 
     // Validate required fields
     if (!email || !password || !name) {
@@ -48,6 +51,20 @@ export default async function handler(
       return;
     }
 
+    // Normalize role
+    const allowedRoles = ['admin', 'manager', 'branch_manager', 'agent'];
+    let cleanedRole = role?.toLowerCase().trim();
+
+    // Convert "branch manager" to "branch_manager"
+    if (cleanedRole === 'branch manager') {
+      cleanedRole = 'branch_manager';
+    }
+
+    if (!allowedRoles.includes(cleanedRole || '')) {
+      response.status(400).json({ error: 'Invalid role value' });
+      return;
+    }
+
     // Create user in Supabase Auth using admin API (avoids rate limits)
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: emailClean,
@@ -55,7 +72,7 @@ export default async function handler(
       email_confirm: true,
       user_metadata: {
         name,
-        role,
+        role: cleanedRole,
         branch_id: branch_id || null,
       },
     });
@@ -85,15 +102,20 @@ export default async function handler(
         id: authData.user.id,
         email: emailClean,
         name,
-        role,
+        role: cleanedRole,
         branch_id: branch_id || null,
         status: 'online',
       });
 
     if (profileError) {
       console.error('Profile creation error:', profileError);
-      // Don't fail the request if profile creation fails - user still created in auth
-      console.warn('Profile creation failed, but user was created in auth');
+      
+      // Rollback: delete created auth user if profile creation fails
+      console.log('Rolling back auth user due to profile creation failure');
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id).catch(console.error);
+      
+      response.status(500).json({ error: 'Failed to create user profile' });
+      return;
     }
 
     response.status(201).json({
@@ -102,7 +124,7 @@ export default async function handler(
         id: authData.user.id,
         email: authData.user.email,
         name,
-        role,
+        role: cleanedRole,
         branch_id: branch_id || null,
       },
     });
