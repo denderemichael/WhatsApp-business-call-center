@@ -9,8 +9,10 @@ interface AgentFilters {
 }
 
 /**
- * Get Agents Handler
- * GET /api/agents/getAgents
+ * Unified Users Handler
+ * Handles both:
+ * - GET /api/users/agents
+ * - GET /api/users/branches (via ?type=branches)
  */
 export default async function handler(
   request: VercelRequest,
@@ -23,16 +25,17 @@ export default async function handler(
   }
 
   try {
-    // Get user from auth header
+    // Get authorization header
     const authHeader = request.headers.authorization;
-    if (!authHeader) {
+    
+    // Validate header format - must be 'Bearer <token>'
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       response.status(401).json({ error: 'Authorization required' });
       return;
     }
 
-    // Handle both string and string[] types for authorization header
-    const authValue = Array.isArray(authHeader) ? authHeader[0] : authHeader;
-    const token = authValue.replace('Bearer ', '');
+    // Extract token from 'Bearer <token>'
+    const token = authHeader.split(' ')[1];
     
     // Verify the user
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
@@ -57,6 +60,29 @@ export default async function handler(
     const userRole = profileData.role;
     const userBranchId = profileData.branch_id;
 
+    // Check if this is a branches request
+    const queryType = request.query.type as string;
+    
+    if (queryType === 'branches' || request.url?.includes('/branches')) {
+      // Handle /users/branches - return all branches
+      const { data: branches, error: branchesError } = await supabaseAdmin
+        .from('branches')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (branchesError) {
+        console.error('Branches fetch error:', branchesError);
+        response.status(500).json({ error: 'Failed to fetch branches' });
+        return;
+      }
+
+      response.status(200).json({
+        branches: branches || [],
+      });
+      return;
+    }
+
+    // Default: Handle /users/agents - return agents
     // Build query - only get agents
     let query = supabaseAdmin
       .from('users')
@@ -90,7 +116,7 @@ export default async function handler(
       agents: agents || [],
     });
   } catch (error) {
-    console.error('Get agents error:', error);
+    console.error('Get users error:', error);
     response.status(500).json({ error: 'Internal server error' });
   }
 }
