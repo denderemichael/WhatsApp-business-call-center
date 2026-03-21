@@ -91,7 +91,6 @@ export default async function handler(
         name: profileData.name,
         role: profileData.role,
         branchId: profileData.branch_id,
-        avatar: profileData.avatar,
         status: profileData.status,
       },
     });

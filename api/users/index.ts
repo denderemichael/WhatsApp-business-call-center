@@ -86,7 +86,7 @@ export default async function handler(
     // Build query - only get agents
     let query = supabaseAdmin
       .from('users')
-      .select('id, name, email, role, branch_id, avatar, status')
+      .select('id, name, email, role, branch_id, status')
       .eq('role', 'agent');
 
     // Apply role-based filtering for branch managers

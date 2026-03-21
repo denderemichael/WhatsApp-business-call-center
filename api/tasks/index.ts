@@ -80,15 +80,11 @@ export default async function handler(
 
     // GET /tasks - list tasks
     if (request.method === 'GET') {
-      // Build query based on filters and role
+      // Build query based on filters and role - select raw data without foreign key joins
+      // (foreign key relationships may not exist in database)
       let query = supabaseAdmin
         .from('tasks')
-        .select(`
-          *,
-          assigned_agent:users!tasks_assigned_agent_id_fkey(id, name, email),
-          assigned_by_manager:users!tasks_assigned_by_manager_id_fkey(id, name, email),
-          branch:branches(id, name)
-        `);
+        .select('*');
 
       // Apply role-based filtering
       if (userRole === 'agent') {
