@@ -26,10 +26,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedToken = localStorage.getItem(TOKEN_KEY);
       const storedUser = localStorage.getItem(USER_KEY);
       
-      // Clear any existing invalid tokens on startup
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      api.clearToken();
+      if (storedToken && storedUser) {
+        // Validate token exists and set it
+        try {
+          const user = JSON.parse(storedUser);
+          api.setToken(storedToken);
+          setUser(user);
+        } catch (e) {
+          // Invalid stored data - clear it
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          api.clearToken();
+        }
+      }
       
       setIsLoading(false);
     };
@@ -54,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: loggedInUser.name || loggedInUser.email?.split('@')[0] || 'User',
         email: loggedInUser.email,
         role: loggedInUser.role as UserRole,
-        branchId: loggedInUser.branch_id,
+        branchId: (loggedInUser as any).branchId || (loggedInUser as any).branch_id,
         avatar: loggedInUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
         status: 'online',
       };
@@ -80,13 +89,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Set token on API service immediately
       api.setToken(token);
       
-      // Map backend user to frontend User type
+      // Map backend user to frontend User type (handle both branch_id and branchId from API)
       const user: User = {
         id: newUser.id,
         name: newUser.name || newUser.email?.split('@')[0] || 'User',
         email: newUser.email,
         role: newUser.role as UserRole,
-        branchId: newUser.branch_id,
+        branchId: (newUser as any).branchId || (newUser as any).branch_id,
         avatar: newUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
         status: 'online',
       };

@@ -60,11 +60,11 @@ export default async function handler(
     const userRole = profileData.role;
     const userBranchId = profileData.branch_id;
 
-    // Build query - only get agents
+    // Build query - only get agents (lowercase to match database)
     let query = supabaseAdmin
       .from('users')
       .select('id, name, email, role, branch_id, avatar, status')
-      .eq('role', 'Agent');
+      .eq('role', 'agent');
 
     // Apply role-based filtering for branch managers
     if (userRole === 'branch_manager' && userBranchId) {

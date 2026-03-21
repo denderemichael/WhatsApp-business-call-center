@@ -118,14 +118,38 @@ export default async function handler(
       return;
     }
 
+    // Sign in immediately to get a session token
+    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.signInWithPassword({
+      email: emailClean,
+      password,
+    });
+
+    if (sessionError || !sessionData.session) {
+      console.error('Session creation error:', sessionError);
+      // User was created but we couldn't create session - still return success but without token
+      // Frontend will need to ask user to login
+      response.status(201).json({
+        message: 'User registered successfully. Please login.',
+        user: {
+          id: authData.user.id,
+          email: authData.user.email,
+          name,
+          role: cleanedRole,
+          branch_id: branch_id || null,
+        },
+      });
+      return;
+    }
+
     response.status(201).json({
       message: 'User registered successfully',
+      token: sessionData.session.access_token,
       user: {
         id: authData.user.id,
         email: authData.user.email,
         name,
         role: cleanedRole,
-        branch_id: branch_id || null,
+        branchId: branch_id || null,
       },
     });
   } catch (error) {
