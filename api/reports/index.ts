@@ -79,14 +79,10 @@ export default async function handler(
 
     // GET /reports - list reports
     if (request.method === 'GET') {
-      // Build query based on filters and role
+      // Build query based on filters and role - no foreign key joins (relationships may not exist)
       let query = supabaseAdmin
         .from('reports')
-        .select(`
-          *,
-          reported_by_manager:users!reports_reported_by_manager_id_fkey(id, name, email),
-          branch:branches(id, name)
-        `);
+        .select('*');
 
       // Apply role-based filtering
       if (userRole === 'agent') {
@@ -185,8 +181,8 @@ export default async function handler(
       // Use the user's branch if no branch_id provided
       const reportBranchId = branch_id || userBranchId;
 
-      // Map status to backend format
-      const backendStatus = 'pending';
+      // Map status to backend format - use 'submitted' (not 'pending' which violates constraint)
+      const backendStatus = 'submitted';
 
       // Create the report
       const { data: reportData, error: reportError } = await supabaseAdmin
