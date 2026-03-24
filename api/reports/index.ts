@@ -90,9 +90,10 @@ export default async function handler(
         response.status(403).json({ error: 'Agents are not authorized to view reports' });
         return;
       } else if (userRole === 'branch_manager' || userRole === 'manager') {
-        // Managers see reports from their branch or reports they created
+        // Managers see reports from their branch OR reports they created
         if (userBranchId) {
-          query = query.eq('branch_id', userBranchId);
+          // Use OR to show both: reports from branch + reports created by this manager
+          query = query.or(`branch_id.eq.${userBranchId},reported_by_manager_id.eq.${user.id}`);
         } else {
           // If no branch, only see their own reports
           query = query.eq('reported_by_manager_id', user.id);

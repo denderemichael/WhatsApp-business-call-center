@@ -91,9 +91,13 @@ export default async function handler(
         // Agents can only see their assigned tasks
         query = query.eq('assigned_agent_id', user.id);
       } else if (userRole === 'branch_manager' || userRole === 'manager') {
-        // Managers see tasks from their branch
+        // Managers see tasks from their branch OR tasks they created
         if (userBranchId) {
-          query = query.eq('branch_id', userBranchId);
+          // Use OR to show both: tasks from branch + tasks created by this manager
+          query = query.or(`branch_id.eq.${userBranchId},assigned_by_manager_id.eq.${user.id}`);
+        } else {
+          // If no branch, only see their own tasks
+          query = query.eq('assigned_by_manager_id', user.id);
         }
       }
       // Admins see all tasks (no filter)
