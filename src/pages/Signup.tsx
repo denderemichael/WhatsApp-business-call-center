@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/types';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageCircle, Shield, Users, Headphones } from 'lucide-react';
+import api from '@/services/api';
 
 const roleConfig = {
   admin: {
@@ -36,10 +37,24 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('agent');
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
+  const [branches, setBranches] = useState<{id: string; name: string}[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { signup } = useAuth();
   const navigate = useNavigate();
+
+  // Fetch branches when role changes to agent
+  useEffect(() => {
+    if (selectedRole === 'agent') {
+      api.getBranches()
+        .then(branches => setBranches(branches))
+        .catch(err => console.error('Failed to load branches:', err));
+    } else {
+      setBranches([]);
+      setSelectedBranchId('');
+    }
+  }, [selectedRole]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +78,7 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      const success = await signup(name, email, password, selectedRole);
+      const success = await signup(name, email, password, selectedRole, selectedRole === 'agent' ? selectedBranchId : undefined);
       if (success) {
         navigate('/dashboard');
       } else {
@@ -177,6 +192,27 @@ export default function Signup() {
                   className="h-11"
                 />
               </div>
+
+              {/* Branch Selection - Only for agents */}
+              {selectedRole === 'agent' && (
+                <div className="space-y-2">
+                  <Label htmlFor="branch">Branch</Label>
+                  <select
+                    id="branch"
+                    value={selectedBranchId}
+                    onChange={(e) => setSelectedBranchId(e.target.value)}
+                    required
+                    className="flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Select a branch</option>
+                    {branches.map(branch => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {error && (
                 <p className="text-sm text-destructive animate-slide-up">{error}</p>

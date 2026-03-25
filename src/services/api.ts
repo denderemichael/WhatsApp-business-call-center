@@ -70,7 +70,7 @@ class ApiService {
   constructor() {
     // Load token from localStorage on initialization
     if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('token');
+      const storedToken = localStorage.getItem('auth_token');
       if (storedToken) {
         this.token = storedToken;
       }
@@ -84,7 +84,7 @@ class ApiService {
     this.token = token;
     // Also persist to localStorage
     if (typeof window !== 'undefined') {
-      localStorage.setItem('token', token);
+      localStorage.setItem('auth_token', token);
     }
   }
 
@@ -92,7 +92,7 @@ class ApiService {
     this.token = null;
     // Also clear from localStorage
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
+      localStorage.removeItem('auth_token');
     }
   }
 
