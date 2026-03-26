@@ -18,24 +18,24 @@ export default async function handler(
   }
 
   try {
-    // Get authorization header
+    // Get authorization header (optional - for logged in users)
     const authHeader = request.headers.authorization;
+    console.log('branches.ts: Processing request, authHeader:', authHeader ? 'present' : 'none');
     
-    // Validate header format - must be 'Bearer <token>'
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      response.status(401).json({ error: 'Authorization required' });
-      return;
-    }
-
-    // Extract token from 'Bearer <token>'
-    const token = authHeader.split(' ')[1];
-    
-    // Verify the user
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (authError || !user) {
-      response.status(401).json({ error: 'Invalid or expired token' });
-      return;
+    // If auth header provided, verify the user (but don't require it for signup flow)
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      console.log('branches.ts: Token present, verifying...');
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+      
+      if (authError || !user) {
+        // Invalid token - but we can still proceed without auth for public branch list
+        console.log('branches.ts: Invalid token, proceeding without auth');
+      } else {
+        console.log('branches.ts: User verified:', user.id);
+      }
+    } else {
+      console.log('branches.ts: No auth header, proceeding without auth');
     }
 
     // Fetch all branches

@@ -25,45 +25,26 @@ export default async function handler(
   }
 
   try {
-    // Get authorization header
+    // Get authorization header (optional - for logged in users)
     const authHeader = request.headers.authorization;
     
-    // Validate header format - must be 'Bearer <token>'
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      response.status(401).json({ error: 'Authorization required' });
-      return;
-    }
-
-    // Extract token from 'Bearer <token>'
-    const token = authHeader.split(' ')[1];
-    
-    // Verify the user
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (authError || !user) {
-      response.status(401).json({ error: 'Invalid or expired token' });
-      return;
-    }
-
-    // Get user's role from users table
-    const { data: profileData, error: profileError } = await supabaseAdmin
-      .from('users')
-      .select('role, branch_id')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profileData) {
-      response.status(403).json({ error: 'User profile not found' });
-      return;
-    }
-
-    const userRole = profileData.role;
-    const userBranchId = profileData.branch_id;
-
-    // Check if this is a branches request
+    // Check if this is a branches request - don't require auth for branches
     const queryType = request.query.type as string;
+    const isBranchesRequest = queryType === 'branches' || request.url?.includes('/branches');
     
-    if (queryType === 'branches' || request.url?.includes('/branches')) {
+    // If auth header provided, verify the user
+    let user = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+      
+      if (!authError && authData?.user) {
+        user = authData.user;
+      }
+    }
+
+    // Branches can be fetched without auth (for signup flow)
+    if (isBranchesRequest) {
       // Handle /users/branches - return all branches
       const { data: branches, error: branchesError } = await supabaseAdmin
         .from('branches')
@@ -83,6 +64,27 @@ export default async function handler(
     }
 
     // Default: Handle /users/agents - return agents
+    // Auth is required for getting agents
+    if (!user) {
+      response.status(401).json({ error: 'Authorization required' });
+      return;
+    }
+
+    // Get user's role from users table
+    const { data: profileData, error: profileError } = await supabaseAdmin
+      .from('users')
+      .select('role, branch_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profileData) {
+      response.status(403).json({ error: 'User profile not found' });
+      return;
+    }
+
+    const userRole = profileData.role;
+    const userBranchId = profileData.branch_id;
+
     // Build query - only get agents
     let query = supabaseAdmin
       .from('users')
